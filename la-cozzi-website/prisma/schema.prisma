@@ -1,0 +1,75 @@
+// La Cozzi 後台資料結構
+// 文件：https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OWNER // 管理員：可管理帳號、夥伴與所有文章
+  EDITOR // 樂團夥伴：只能新增與編輯自己的文章
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique // 登入帳號（統一存小寫）
+  displayName  String // 顯示在文章作者欄
+  passwordHash String
+  role         Role      @default(EDITOR)
+  isActive     Boolean   @default(true)
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  posts        Post[]
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  notionId    String?    @unique // 從 Notion 搬移時使用，讓搬移腳本可重複執行
+  slug        String     @unique
+  externalUrl String? // 卡片直接連到外部網址（選填）
+  title       String
+  excerpt     String?
+  content     String     @db.Text // Markdown
+  cover       String?
+  youtubeUrl  String?
+  tags        String[]   @default([])
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String?
+  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  notionId    String?  @unique
+  name        String
+  role        String   @default("")
+  description String[] @default([])
+  photo       String?
+  content     String?  @db.Text
+  order       Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, order])
+}

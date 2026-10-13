@@ -2,12 +2,10 @@
 
 import { User } from 'lucide-react';
 import Image from 'next/image';
-import { Partner } from '@/lib/notion';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import type { PublicPartner } from '@/lib/content';
+import MarkdownContent from '@/components/MarkdownContent';
 
-export default function PartnersPage({ partners }: { partners: Partner[] }) {
-
+export default function PartnersPage({ partners }: { partners: PublicPartner[] }) {
   return (
     <div className="py-24 px-6 max-w-6xl mx-auto animate-in slide-in-from-bottom-8 duration-700 fade-in pb-32">
       <div className="text-center mb-20 relative">
@@ -22,7 +20,7 @@ export default function PartnersPage({ partners }: { partners: Partner[] }) {
 
       {/* 卡片式排版設計：一排兩個 */}
       <div className="grid lg:grid-cols-2 gap-8 items-stretch relative z-10">
-        {partners.map(partner => (
+        {partners.map((partner) => (
           <div key={partner.id} className="border-2 border-amber-500/30 rounded-organic p-6 md:p-8 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-6 md:gap-8 items-center group bg-stone-900/40 backdrop-blur-md hover:bg-stone-900/80 hover:border-amber-500/60 transition-all duration-500 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-amber-500/10 relative overflow-hidden">
             <div className="absolute -right-10 -bottom-10 bg-amber-500/5 w-40 h-40 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors duration-1000 point-events-none"></div>
             {/* 照片區域 */}
@@ -61,9 +59,7 @@ export default function PartnersPage({ partners }: { partners: Partner[] }) {
               
               {partner.content && partner.content.trim() !== '' && (
                 <div className="mt-6 pt-5 border-t border-stone-700/30 prose prose-invert prose-stone prose-sm max-w-none prose-p:leading-relaxed prose-a:text-amber-500 hover:prose-a:text-amber-400 text-stone-400 font-light prose-h1:text-amber-200 prose-h2:text-amber-200 prose-h3:text-amber-200 prose-strong:text-amber-100 prose-strong:font-bold prose-ul:list-disc prose-ol:list-decimal text-left">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {partner.content}
-                  </ReactMarkdown>
+                  <MarkdownContent>{partner.content}</MarkdownContent>
                 </div>
               )}
             </div>

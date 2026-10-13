@@ -1,5 +1,5 @@
 import BlogPage from "@/components/BlogPage";
-import { getPublishedPosts } from "@/lib/notion";
+import { getPublishedPosts } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -9,6 +9,6 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const posts = await getPublishedPosts(true);
+  const posts = await getPublishedPosts();
   return <BlogPage posts={posts} />;
 }

@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { FileText, ArrowRight } from 'lucide-react';
-import type { Post } from '@/lib/notion';
+import type { PublicPost } from '@/lib/content';
 import Link from 'next/link';
 
-export default function BlogPage({ posts }: { posts: Post[] }) {
+export default function BlogPage({ posts }: { posts: PublicPost[] }) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // Extract all unique tags
-  const allTags = Array.from(new Set(posts.flatMap(p => p.tags)));
+  const allTags = Array.from(new Set(posts.flatMap((p) => p.tags)));
 
   const filteredPosts = selectedTag 
-    ? posts.filter(p => p.tags.includes(selectedTag))
+    ? posts.filter((p) => p.tags.includes(selectedTag))
     : posts;
 
   return (
@@ -35,7 +35,7 @@ export default function BlogPage({ posts }: { posts: Post[] }) {
           >
             全部文章
           </button>
-          {allTags.map(tag => (
+          {allTags.map((tag) => (
             <button 
               key={tag}
               onClick={() => setSelectedTag(tag)}
@@ -52,13 +52,13 @@ export default function BlogPage({ posts }: { posts: Post[] }) {
           <FileText size={48} className="mx-auto text-stone-600 mb-6 opacity-50" />
           <p className="text-xl font-bold font-serif text-stone-200 mb-2">精彩文章正在醞釀中... ☕</p>
           <p className="font-light text-sm text-stone-400">目前主唱大人正在用心籌備與整理過往的演出花絮，敬請期待！</p>
-          <span className="text-xs mt-6 block text-stone-600 font-mono opacity-50">（管理員提示：如果已在 Notion 寫好文章，請確認發布狀態欄位已設為「Published」）</span>
+          <span className="text-xs mt-6 block text-stone-600 font-mono opacity-50">（管理員提示：請登入後台確認文章發布狀態是否已設為「PUBLISHED」）</span>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
           {filteredPosts.map((post, i) => {
-            const isExternal = post.slug.startsWith('http');
-            const href = isExternal ? post.slug : `/blog/${post.slug}`;
+            const isExternal = Boolean(post.externalUrl || post.slug.startsWith('http'));
+            const href = post.externalUrl || (post.slug.startsWith('http') ? post.slug : `/blog/${post.slug}`);
             const Tag = isExternal ? 'a' : Link;
 
             let youtubeId = '';

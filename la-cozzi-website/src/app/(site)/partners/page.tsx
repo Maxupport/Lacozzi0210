@@ -1,5 +1,5 @@
 import PartnersPage from "@/components/PartnersPage";
-import { getPartners } from "@/lib/notion";
+import { getPublishedPartners } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -9,6 +9,6 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const partners = await getPartners();
+  const partners = await getPublishedPartners();
   return <PartnersPage partners={partners} />;
 }

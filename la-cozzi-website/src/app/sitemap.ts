@@ -1,20 +1,19 @@
 import type { MetadataRoute } from 'next';
-import { getPublishedPosts } from '@/lib/notion';
+import { getPublishedPostsWithUpdatedAt } from '@/lib/content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lacozzi.com';
   
-  // Fetch dynamic blog posts for sitemap
   let posts: any[] = [];
   try {
-    posts = await getPublishedPosts(true);
+    posts = await getPublishedPostsWithUpdatedAt();
   } catch (error) {
     console.error("Failed to fetch posts for sitemap", error);
   }
   
   const blogUrls = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
+    lastModified: post.updatedAt || post.date || new Date().toISOString(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));

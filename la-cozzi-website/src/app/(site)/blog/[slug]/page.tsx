@@ -1,9 +1,8 @@
-import { getSinglePost, getPublishedPosts } from '@/lib/notion';
+import { getPostBySlug, getPublishedPosts } from '@/lib/content';
 import { notFound } from 'next/navigation';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, User } from 'lucide-react';
+import MarkdownContent from '@/components/MarkdownContent';
 
 export const revalidate = 60; // ISR cache timing
 
@@ -14,45 +13,44 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata(props: any) {
-  const params = await props.params;
-  const data = await getSinglePost(params.slug);
-  if (!data) return { title: 'Not Found' };
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params;
+  const data = await getPostBySlug(slug);
+  if (!data) return { title: '文章不存在 | La Cozzi' };
   
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lacozzi.com';
   
   return {
     title: `${data.post.title} | La Cozzi 深度文章`,
-    description: `La Cozzi 深度文章 - ${data.post.title}`,
+    description: data.post.excerpt || `La Cozzi 深度文章 - ${data.post.title}`,
     openGraph: {
       title: `${data.post.title} | La Cozzi 深度文章`,
-      description: `La Cozzi 深度文章 - ${data.post.title}`,
-      url: `${baseUrl}/blog/${params.slug}`,
+      description: data.post.excerpt || `La Cozzi 深度文章 - ${data.post.title}`,
+      url: `${baseUrl}/blog/${slug}`,
       type: 'article',
       publishedTime: data.post.date,
-      authors: ['La Cozzi 拉釦子樂團'],
+      authors: [data.post.authorName || 'La Cozzi 拉釦子樂團'],
       tags: data.post.tags,
       images: data.post.cover ? [data.post.cover] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${data.post.title} | La Cozzi 深度文章`,
-      description: `La Cozzi 深度文章 - ${data.post.title}`,
+      description: data.post.excerpt || `La Cozzi 深度文章 - ${data.post.title}`,
       images: data.post.cover ? [data.post.cover] : [],
     },
   };
 }
 
-export default async function BlogPostPage(props: any) {
-  const params = await props.params;
-  const data = await getSinglePost(params.slug);
+export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params;
+  const data = await getPostBySlug(slug);
   
   if (!data) {
     notFound();
   }
 
   const { post, markdown, nextPost } = data;
-
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lacozzi.com';
 
   const jsonLd = {
@@ -60,14 +58,14 @@ export default async function BlogPostPage(props: any) {
     '@type': 'BlogPosting',
     headline: post.title,
     datePublished: post.date,
-    dateModified: post.date,
+    dateModified: post.updatedAt || post.date,
     author: {
       '@type': 'Person',
-      name: 'La Cozzi 拉釦子樂團',
+      name: post.authorName || 'La Cozzi 拉釦子樂團',
       url: 'https://www.instagram.com/lacozzi_1314/',
     },
     image: post.cover ? [post.cover] : [],
-    url: `${baseUrl}/blog/${params.slug}`,
+    url: `${baseUrl}/blog/${slug}`,
   };
 
   return (
@@ -88,8 +86,11 @@ export default async function BlogPostPage(props: any) {
 
       <main className="max-w-3xl mx-auto px-6 py-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <header className="mb-14 text-center">
-          <div className="flex items-center justify-center space-x-4 text-sm text-amber-400 font-mono mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-amber-400 font-mono mb-6">
             <span className="flex items-center"><Calendar size={14} className="mr-1.5" />{post.date ? post.date.split('T')[0] : ''}</span>
+            {post.authorName && (
+              <span className="flex items-center text-stone-400"><User size={14} className="mr-1.5 text-amber-500/70" />{post.authorName}</span>
+            )}
             {post.tags.length > 0 && (
               <span className="flex items-center"><Tag size={14} className="mr-1.5" /> {post.tags.join(', ')}</span>
             )}
@@ -106,16 +107,14 @@ export default async function BlogPostPage(props: any) {
         </header>
 
         <article className="prose prose-invert prose-lg max-w-none prose-headings:font-black prose-headings:font-serif prose-a:text-amber-500 hover:prose-a:text-amber-400 prose-img:rounded-organic-2 text-stone-300">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {markdown}
-          </ReactMarkdown>
+          <MarkdownContent>{markdown}</MarkdownContent>
         </article>
 
         <div className="mt-24 pt-10 border-t border-stone-800 flex flex-col md:flex-row gap-6 items-center justify-between">
           {nextPost && (
             <Link 
-              href={nextPost.slug.startsWith('http') ? nextPost.slug : `/blog/${nextPost.slug}`}
-              target={nextPost.slug.startsWith('http') ? "_blank" : undefined}
+              href={nextPost.externalUrl || (nextPost.slug.startsWith('http') ? nextPost.slug : `/blog/${nextPost.slug}`)}
+              target={nextPost.externalUrl || nextPost.slug.startsWith('http') ? "_blank" : undefined}
               className="w-full md:w-1/2 text-left px-6 py-5 rounded-organic bg-stone-900/60 border-2 border-stone-800 text-stone-300 hover:border-amber-500/40 transition-all shadow-[0_15px_40px_-20px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_50px_-15px_rgba(217,119,6,0.2)] group"
             >
               <div className="text-xs text-stone-500 mb-1.5 font-medium tracking-wider">再讀一篇</div>

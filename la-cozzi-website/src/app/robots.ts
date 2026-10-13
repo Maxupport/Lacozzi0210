@@ -8,11 +8,13 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
+        disallow: ['/admin', '/admin/*', '/api/*'],
       },
       {
         // Explicitly allow AI bots for AEO (Answer Engine Optimization)
         userAgent: ['GPTBot', 'ChatGPT-User', 'CCBot', 'PerplexityBot', 'anthropic-ai'],
         allow: '/',
+        disallow: ['/admin', '/admin/*', '/api/*'],
       }
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
