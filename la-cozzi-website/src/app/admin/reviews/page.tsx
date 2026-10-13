@@ -8,7 +8,7 @@ export default async function AdminReviewsPage() {
   await requireUser();
 
   const reviews = await prisma.review.findMany({
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
   });
 
   const serialized = reviews.map((r) => ({

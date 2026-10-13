@@ -143,7 +143,7 @@ export async function getApprovedReviews(): Promise<PublicReview[]> {
   try {
     const rows = await prisma.review.findMany({
       where: { status: 'APPROVED' },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       select: {
         id: true,
         name: true,
