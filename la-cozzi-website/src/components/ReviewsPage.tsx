@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Star, Quote, UserCircle, PlusCircle, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
+import { Star, Quote, UserCircle, PlusCircle, CheckCircle2, AlertCircle, X, Sparkles, ChevronRight } from 'lucide-react';
 import type { PublicReview } from '@/lib/content';
 
 export default function ReviewsPage({ initialReviews }: { initialReviews: PublicReview[] }) {
   const [reviews] = useState<PublicReview[]>(initialReviews);
   const [showModal, setShowModal] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<PublicReview | null>(null);
 
   // 表單狀態
   const [name, setName] = useState('');
@@ -75,18 +76,18 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
   );
 
   return (
-    <div className="py-24 px-6 max-w-6xl mx-auto animate-in fade-in zoom-in-95 duration-700 pb-32">
+    <div className="pt-4 md:pt-8 pb-24 px-4 md:px-6 max-w-6xl mx-auto animate-in fade-in zoom-in-95 duration-700">
       {/* 頁面標題區 */}
-      <div className="text-center mb-16 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[120px] bg-amber-500/10 blur-[90px] rounded-full pointer-events-none"></div>
-        <h2 className="text-4xl md:text-5xl font-black font-serif text-stone-100 mb-6 relative z-10 tracking-tight">
+      <div className="text-center mb-8 md:mb-10 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[90px] bg-amber-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+        <h2 className="text-3xl md:text-4xl font-black font-serif text-stone-100 mb-2.5 relative z-10 tracking-tight">
           聽見感動的迴響
         </h2>
-        <p className="text-stone-300 max-w-xl mx-auto font-light leading-relaxed text-base md:text-lg relative z-10 mb-8">
+        <p className="text-stone-300 max-w-xl mx-auto font-light leading-relaxed text-sm md:text-base relative z-10 mb-5">
           每一次演出後收到最真實的回饋，都是我們繼續用音樂創造溫度的最強動力。
         </p>
 
-        <div className="relative z-10 mt-6">
+        <div className="relative z-10">
           <button
             type="button"
             onClick={() => {
@@ -94,58 +95,85 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
               setSubmitted(false);
               setErrorMsg('');
             }}
-            className="bg-amber-500 hover:bg-amber-400 text-stone-950 px-8 py-3.5 rounded-organic font-black font-serif transition-all duration-300 inline-flex items-center space-x-2 shadow-[0_0_25px_rgba(245,158,11,0.3)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 cursor-pointer"
+            className="bg-amber-500 hover:bg-amber-400 text-stone-950 px-6 py-2.5 rounded-organic font-black font-serif text-sm transition-all duration-300 inline-flex items-center space-x-2 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_30px_rgba(245,158,11,0.45)] hover:-translate-y-0.5 cursor-pointer"
           >
-            <Sparkles size={18} />
+            <Sparkles size={16} />
             <span>分享您的美好體驗</span>
           </button>
         </div>
       </div>
 
       {/* 好評卡片網格 */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24 relative z-10">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7 mb-20 relative z-10">
         {reviews.length === 0 ? (
           <div className="col-span-full text-center py-20 text-stone-500">
             目前尚無公開評價，歡迎成為第一位留下感動回饋的朋友！
           </div>
         ) : (
-          reviews.map((review) => (
-            <div
-              key={review.id}
-              className="bg-stone-900/60 p-8 rounded-organic border-2 border-stone-800 backdrop-blur-sm shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] relative hover:shadow-[0_20px_50px_-15px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1 transition-all duration-500 group overflow-hidden flex flex-col justify-between"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-amber-500/10 pointer-events-none"></div>
-              <Quote
-                className="absolute top-8 right-8 text-stone-100/5 group-hover:text-amber-500/15 transition-colors duration-500 pointer-events-none"
-                size={40}
-                strokeWidth={1}
-              />
+          reviews.map((review) => {
+            const isLong =
+              review.comment.length > 85 ||
+              review.comment.includes('\n\n') ||
+              review.comment.split('\n').length > 3;
 
-              <div>
-                <div className="flex items-center space-x-4 mb-5 relative z-10">
-                  <div className="p-2.5 bg-stone-800/80 rounded-organic-2 border-2 border-stone-700/50 text-amber-400">
-                    <UserCircle size={28} strokeWidth={1.5} />
+            return (
+              <div
+                key={review.id}
+                className="bg-stone-900/60 p-6 rounded-organic border-2 border-stone-800 backdrop-blur-sm shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] relative hover:shadow-[0_20px_50px_-15px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1 transition-all duration-300 group overflow-hidden flex flex-col justify-between h-[340px] md:h-[350px]"
+              >
+                <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl -mr-8 -mt-8 transition-all duration-500 group-hover:bg-amber-500/10 pointer-events-none"></div>
+                <Quote
+                  className="absolute top-5 right-5 text-stone-100/5 group-hover:text-amber-500/15 transition-colors duration-500 pointer-events-none"
+                  size={32}
+                  strokeWidth={1}
+                />
+
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* 人名與分類標籤 */}
+                  <div className="flex items-center space-x-3 mb-3 relative z-10 shrink-0">
+                    <div className="p-2 bg-stone-800/80 rounded-organic-2 border-2 border-stone-700/50 text-amber-400">
+                      <UserCircle size={24} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <p className="font-bold font-serif text-stone-100 text-base leading-tight">{review.name}</p>
+                      <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 inline-block mt-1">
+                        {review.tag}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold font-serif text-stone-100 text-base">{review.name}</p>
-                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 inline-block mt-0.5">
-                      {review.tag}
-                    </span>
+
+                  {/* 星等 */}
+                  <div className="mb-2.5 relative z-10 shrink-0">{renderStars(review.stars)}</div>
+
+                  {/* 文字內容（統一截斷並留有展開按鈕） */}
+                  <div className="relative z-10 flex-1 flex flex-col justify-between overflow-hidden">
+                    <p className="text-stone-300 text-sm leading-relaxed font-light line-clamp-4 whitespace-pre-line">
+                      {review.comment}
+                    </p>
+
+                    {isLong ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReview(review)}
+                        className="mt-2 text-xs font-semibold text-amber-400 hover:text-amber-300 inline-flex items-center space-x-1 transition-colors cursor-pointer w-fit group/btn"
+                      >
+                        <span>點擊展開看更多</span>
+                        <ChevronRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                      </button>
+                    ) : (
+                      <div className="h-5" />
+                    )}
                   </div>
                 </div>
 
-                <div className="mb-4 relative z-10">{renderStars(review.stars)}</div>
-                <p className="text-stone-300 text-sm leading-relaxed font-light relative z-10 whitespace-pre-line">
-                  {review.comment}
-                </p>
+                {/* 底部時間 */}
+                <div className="mt-3.5 pt-3 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-500 font-mono tracking-wider relative z-10 shrink-0">
+                  <span>{review.date}</span>
+                  <span className="text-[10px] text-stone-600">La Cozzi 樂團評價</span>
+                </div>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-500 font-mono tracking-wider relative z-10">
-                <span>{review.date}</span>
-                <span className="text-[10px] text-stone-600">La Cozzi 樂團評價</span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -333,6 +361,62 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
                 </form>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 查看完整評價 Lightbox Modal */}
+      {selectedReview && (
+        <div
+          className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setSelectedReview(null)}
+        >
+          <div
+            className="bg-stone-900 border-2 border-stone-800 rounded-organic p-6 md:p-8 max-w-xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedReview(null)}
+              className="absolute top-5 right-5 text-stone-400 hover:text-stone-100 p-1.5 rounded-lg hover:bg-stone-800 transition-colors"
+              aria-label="關閉"
+            >
+              <X size={20} />
+            </button>
+
+            <Quote className="text-amber-500/20 mb-3" size={40} strokeWidth={1} />
+
+            <div className="flex items-center space-x-3.5 mb-4">
+              <div className="p-2.5 bg-stone-800/90 rounded-organic-2 border-2 border-stone-700/60 text-amber-400">
+                <UserCircle size={28} strokeWidth={1.5} />
+              </div>
+              <div>
+                <h3 className="font-bold font-serif text-stone-100 text-lg leading-tight">{selectedReview.name}</h3>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                    {selectedReview.tag}
+                  </span>
+                  <span className="text-xs text-stone-400 font-mono">{selectedReview.date}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">{renderStars(selectedReview.stars)}</div>
+
+            <div className="text-stone-200 text-sm md:text-base leading-relaxed font-light whitespace-pre-line border-t border-stone-800/80 pt-4">
+              {selectedReview.comment}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-500 font-mono">
+              <span>La Cozzi 樂團 · 真實好評</span>
+              <button
+                type="button"
+                onClick={() => setSelectedReview(null)}
+                className="px-5 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-organic text-xs font-bold transition-colors cursor-pointer"
+              >
+                關閉
+              </button>
+            </div>
           </div>
         </div>
       )}
