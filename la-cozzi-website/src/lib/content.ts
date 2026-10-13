@@ -56,7 +56,9 @@ function toPublic(p: PostRow): PublicPost {
     date: (p.publishedAt ?? p.createdAt).toISOString(),
     youtubeUrl: p.youtubeUrl ?? undefined,
     externalUrl: p.externalUrl ?? undefined,
-    authorName: p.author?.displayName,
+    authorName: p.author?.displayName
+      ? p.author.displayName.replace(/\s*[(（]管理員[)）]/g, '').trim()
+      : undefined,
   };
 }
 

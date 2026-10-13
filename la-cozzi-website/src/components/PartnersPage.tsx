@@ -1,7 +1,6 @@
 "use client";
 
 import { User } from 'lucide-react';
-import Image from 'next/image';
 import type { PublicPartner } from '@/lib/content';
 import MarkdownContent from '@/components/MarkdownContent';
 
@@ -27,12 +26,11 @@ export default function PartnersPage({ partners }: { partners: PublicPartner[] }
             <div className="flex-shrink-0 self-center flex items-center justify-center relative group-hover:-translate-y-2 transition-transform duration-500">
               <div className="w-40 h-40 md:w-48 md:h-48 rounded-organic-2 overflow-hidden bg-stone-800 border-4 border-stone-700/50 group-hover:border-amber-400/50 transition-colors shadow-inner flex items-center justify-center relative rotate-2 group-hover:rotate-0">
                 {partner.photo ? (
-                  <Image 
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img 
                     src={partner.photo} 
                     alt={partner.name} 
-                    fill
-                    sizes="(max-width: 768px) 160px, 192px"
-                    className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                   />
                 ) : (
                   <>

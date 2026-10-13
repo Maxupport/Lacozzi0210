@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   const username = (process.env.INITIAL_OWNER_USERNAME || 'lacozzi0210@gmail.com').trim().toLowerCase();
   const password = process.env.INITIAL_OWNER_PASSWORD || 'hatepop0210';
-  const displayName = process.env.INITIAL_OWNER_DISPLAY_NAME || 'Max (管理員)';
+  const displayName = process.env.INITIAL_OWNER_DISPLAY_NAME || 'Max';
 
   console.log(`[Seed] Checking for initial owner: ${username}`);
 
