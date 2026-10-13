@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FileText, Users, UserCheck, Settings, LogOut, ExternalLink, Music } from 'lucide-react';
+import { FileText, Users, UserCheck, Settings, LogOut, ExternalLink, Music, MessageSquare } from 'lucide-react';
 import type { CurrentUser } from '@/lib/auth';
 
 export default function AdminNav({ user }: { user: CurrentUser }) {
@@ -21,6 +21,7 @@ export default function AdminNav({ user }: { user: CurrentUser }) {
 
   const navItems = [
     { href: '/admin/posts', label: '文章管理', icon: FileText },
+    { href: '/admin/reviews', label: '好評管理', icon: MessageSquare },
     ...(user.role === 'OWNER'
       ? [
           { href: '/admin/partners', label: '夥伴管理', icon: Music },

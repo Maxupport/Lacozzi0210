@@ -129,3 +129,42 @@ export async function getPublishedPartners(): Promise<PublicPartner[]> {
     return [];
   }
 }
+
+export interface PublicReview {
+  id: string;
+  name: string;
+  tag: string;
+  stars: number;
+  comment: string;
+  date: string;
+}
+
+export async function getApprovedReviews(): Promise<PublicReview[]> {
+  try {
+    const rows = await prisma.review.findMany({
+      where: { status: 'APPROVED' },
+      orderBy: [{ createdAt: 'desc' }],
+      select: {
+        id: true,
+        name: true,
+        tag: true,
+        stars: true,
+        comment: true,
+        date: true,
+        createdAt: true,
+      },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      tag: r.tag,
+      stars: r.stars,
+      comment: r.comment,
+      date: r.date || r.createdAt.toISOString().split('T')[0],
+    }));
+  } catch (error) {
+    console.error('Failed to load reviews', error);
+    return [];
+  }
+}
+
