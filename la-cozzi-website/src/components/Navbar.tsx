@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -43,7 +43,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-4 lg:space-x-8 text-xs lg:text-sm font-bold text-stone-400 font-sans tracking-wide">
+        <div className="hidden md:flex items-center space-x-3 lg:space-x-6 text-xs lg:text-sm font-bold text-stone-400 font-sans tracking-wide">
           {tabs.map(tab => (
             <Link 
               key={tab.id} 
@@ -57,6 +57,14 @@ export default function Navbar() {
           <a href="https://ig.me/m/lacozzi_1314" target="_blank" rel="noopener noreferrer" className="inline-block bg-amber-100 text-stone-950 px-4 lg:px-5 py-2 md:py-1.5 lg:py-2.5 text-xs lg:text-sm rounded-organic-2 border-2 border-amber-200 font-black font-serif hover:bg-white hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap">
             聯絡我們
           </a>
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-amber-300 transition-all py-1.5 px-3 rounded-lg border border-stone-800 hover:border-amber-500/40 hover:bg-stone-900/60 whitespace-nowrap"
+            title="後台登入"
+          >
+            <LogIn size={13} className="opacity-80" />
+            <span>後台登入</span>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -78,10 +86,18 @@ export default function Navbar() {
               {tab.label}
             </Link>
           ))}
-          <div className="pt-4 border-t border-stone-800">
+          <div className="pt-4 border-t border-stone-800 space-y-3">
             <a href="https://ig.me/m/lacozzi_1314" target="_blank" rel="noopener noreferrer" className="block text-center bg-amber-100 text-stone-950 px-5 py-3.5 rounded-organic-2 border-2 border-amber-200 font-black font-serif shadow-lg">
               聯絡我們
             </a>
+            <Link
+              href="/admin"
+              onClick={handleLinkClick}
+              className="flex items-center justify-center gap-2 text-sm text-stone-400 hover:text-amber-300 py-3 rounded-lg border border-stone-800 hover:bg-stone-900/50 transition-colors"
+            >
+              <LogIn size={16} />
+              <span>後台登入</span>
+            </Link>
           </div>
         </div>
       )}
