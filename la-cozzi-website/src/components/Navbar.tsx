@@ -12,6 +12,7 @@ export default function Navbar() {
   const tabs = [
     { id: 'landing', label: '索取報價', href: '/' },
     { id: 'brand', label: '樂團簡介', href: '/brand' },
+    { id: 'videos', label: '演出影音', href: '/videos' },
     { id: 'partners', label: '夥伴列表', href: '/partners' },
     { id: 'blog', label: '深度文章', href: '/blog' },
     { id: 'reviews', label: '客戶好評', href: '/reviews' },

@@ -33,6 +33,20 @@ export function getYouTubeId(url: string | null | undefined): string {
   return '';
 }
 
+export function getYouTubePlaylistId(urlOrId: string | null | undefined): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+  if (!trimmed.includes('http')) {
+    return trimmed;
+  }
+  try {
+    const u = new URL(trimmed);
+    return u.searchParams.get('list') ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export function formatDate(iso: string | Date | null | undefined) {
   if (!iso) return '';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
