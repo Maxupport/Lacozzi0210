@@ -54,6 +54,7 @@ export default function AdminNav({ user }: { user: CurrentUser }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-organic text-sm font-bold transition-all ${
                     active
                       ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
@@ -110,6 +111,7 @@ export default function AdminNav({ user }: { user: CurrentUser }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={`flex items-center space-x-1 px-2.5 py-1 text-xs rounded font-bold ${
                 active ? 'text-amber-300 bg-amber-500/10' : 'text-stone-400'
               }`}

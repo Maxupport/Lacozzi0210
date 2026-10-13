@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   UserPlus,
@@ -43,6 +43,11 @@ export default function UserList({
   currentOwner: CurrentUser;
 }) {
   const router = useRouter();
+  const [items, setItems] = useState<AdminUserItem[]>(users);
+
+  useEffect(() => {
+    setItems(users);
+  }, [users]);
 
   // 新增帳號表單狀態
   const [showAddModal, setShowAddModal] = useState(false);
@@ -93,19 +98,27 @@ export default function UserList({
   const handleToggleActive = async (u: AdminUserItem) => {
     setErrorMsg('');
     setSuccessMsg('');
+    const nextActive = !u.isActive;
+    // 0ms 樂觀更新
+    setItems((prev) =>
+      prev.map((x) => (x.id === u.id ? { ...x, isActive: nextActive } : x))
+    );
     setBusyId(u.id);
 
     const res = await updateUser({
       id: u.id,
-      isActive: !u.isActive,
+      isActive: nextActive,
     });
 
     setBusyId(null);
 
     if (!res.ok) {
+      setItems((prev) =>
+        prev.map((x) => (x.id === u.id ? { ...x, isActive: u.isActive } : x))
+      );
       setErrorMsg(res.error || '狀態更新失敗');
     } else {
-      setSuccessMsg(`帳號「${u.username}」已${!u.isActive ? '啟用' : '停用'}`);
+      setSuccessMsg(`帳號「${u.username}」已${nextActive ? '啟用' : '停用'}`);
       router.refresh();
     }
   };
@@ -114,9 +127,13 @@ export default function UserList({
   const handleToggleRole = async (u: AdminUserItem) => {
     setErrorMsg('');
     setSuccessMsg('');
+    const nextRole: Role = u.role === 'OWNER' ? 'EDITOR' : 'OWNER';
+    // 0ms 樂觀更新
+    setItems((prev) =>
+      prev.map((x) => (x.id === u.id ? { ...x, role: nextRole } : x))
+    );
     setBusyId(u.id);
 
-    const nextRole: Role = u.role === 'OWNER' ? 'EDITOR' : 'OWNER';
     const res = await updateUser({
       id: u.id,
       role: nextRole,
@@ -125,6 +142,9 @@ export default function UserList({
     setBusyId(null);
 
     if (!res.ok) {
+      setItems((prev) =>
+        prev.map((x) => (x.id === u.id ? { ...x, role: u.role } : x))
+      );
       setErrorMsg(res.error || '權限更新失敗');
     } else {
       setSuccessMsg(`帳號「${u.username}」權限已更新為 ${nextRole === 'OWNER' ? '管理員' : '夥伴'}`);
@@ -163,12 +183,15 @@ export default function UserList({
 
     setErrorMsg('');
     setSuccessMsg('');
+    // 0ms 樂觀移除
+    setItems((prev) => prev.filter((x) => x.id !== u.id));
     setBusyId(u.id);
 
     const res = await deleteUser(u.id);
     setBusyId(null);
 
     if (!res.ok) {
+      setItems(users);
       setErrorMsg(res.error || '刪除失敗');
     } else {
       setSuccessMsg(`帳號「${u.username}」已刪除`);
@@ -231,7 +254,7 @@ export default function UserList({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/80">
-              {users.map((u) => {
+              {items.map((u) => {
                 const isMe = u.id === currentOwner.id;
                 const isBusy = busyId === u.id;
 

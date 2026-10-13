@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus,
@@ -29,6 +29,11 @@ export type AdminPartnerItem = {
 export default function PartnerList({ partners }: { partners: AdminPartnerItem[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [items, setItems] = useState<AdminPartnerItem[]>(partners);
+
+  useEffect(() => {
+    setItems(partners);
+  }, [partners]);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -135,8 +140,11 @@ export default function PartnerList({ partners }: { partners: AdminPartnerItem[]
     if (!confirm(`確定要刪除夥伴「${p.name}」嗎？此動作無法復原。`)) return;
     setErrorMsg('');
     setSuccessMsg('');
+    // 0ms 樂觀移除
+    setItems((prev) => prev.filter((x) => x.id !== p.id));
     const res = await deletePartner(p.id);
     if (!res.ok) {
+      setItems(partners);
       setErrorMsg('刪除失敗');
     } else {
       setSuccessMsg(`夥伴「${p.name}」已刪除`);
@@ -185,7 +193,7 @@ export default function PartnerList({ partners }: { partners: AdminPartnerItem[]
 
       {/* 夥伴卡片列表 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {partners.map((p) => (
+        {items.map((p) => (
           <div
             key={p.id}
             className="bg-stone-900/50 border-2 border-stone-800 rounded-organic p-5 flex flex-col justify-between group hover:border-amber-500/40 transition-all space-y-4"

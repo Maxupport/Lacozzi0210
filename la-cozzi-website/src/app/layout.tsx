@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Noto_Sans_TC, Noto_Serif_TC, Nunito } from "next/font/google";
 import "./globals.css";
 
+export const preferredRegion = 'sin1';
+
 const notoSansTC = Noto_Sans_TC({
   weight: ['300', '400', '500', '700', '900'],
   subsets: ["latin"],

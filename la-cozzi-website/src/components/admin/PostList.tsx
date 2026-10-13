@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -45,13 +45,18 @@ export default function PostList({
   currentUser: CurrentUser;
 }) {
   const router = useRouter();
+  const [items, setItems] = useState<AdminPostItem[]>(posts);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
   const [onlyMine, setOnlyMine] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const filtered = posts.filter((p) => {
+  useEffect(() => {
+    setItems(posts);
+  }, [posts]);
+
+  const filtered = items.filter((p) => {
     if (statusFilter !== 'ALL' && p.status !== statusFilter) return false;
     if (onlyMine && p.authorId !== currentUser.id) return false;
     if (!search.trim()) return true;
@@ -66,11 +71,14 @@ export default function PostList({
 
   const handleDelete = async (post: AdminPostItem) => {
     if (!confirm(`確定要刪除文章「${post.title}」嗎？此動作無法復原。`)) return;
+    // 0ms 樂觀更新：立即從列表移除
+    setItems((prev) => prev.filter((p) => p.id !== post.id));
     setBusyId(post.id);
     setErrorMsg('');
     const res = await deletePost(post.id);
     setBusyId(null);
     if (!res.ok) {
+      setItems(posts);
       setErrorMsg(res.error || '刪除失敗');
     } else {
       router.refresh();
@@ -78,11 +86,19 @@ export default function PostList({
   };
 
   const handleToggle = async (post: AdminPostItem) => {
+    const nextStatus = post.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    // 0ms 樂觀更新：立即變更狀態標籤
+    setItems((prev) =>
+      prev.map((p) => (p.id === post.id ? { ...p, status: nextStatus } : p))
+    );
     setBusyId(post.id);
     setErrorMsg('');
     const res = await togglePostStatus(post.id);
     setBusyId(null);
     if (!res.ok) {
+      setItems((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, status: post.status } : p))
+      );
       setErrorMsg(res.error || '狀態更新失敗');
     } else {
       router.refresh();
