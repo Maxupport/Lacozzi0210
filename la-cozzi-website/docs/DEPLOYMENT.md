@@ -39,11 +39,17 @@ Vercel 實際回復權限、資料庫備份位置與還原步驟仍待確認，�
 
 ### 本機自動化 Smoke Tests 指令
 
+> **重要前提**：Playwright 設定之本機伺服器使用 `npm run start` 針對正式建置產物執行。因此在執行 smoke test 之前，**必須先完成 production build**（或串聯執行）：
+
 ```bash
+# 完整建置並執行 Smoke Tests（建議）
+npm run build && npm run test:smoke
+
+# 若先前已完成 build 且程式碼未變動，可直接執行
 npm run test:smoke
 ```
 
-測試會啟動 Production build 伺服器並透過 Playwright Chromium 執行核心唯讀檢查：
+測試會啟動正式建置伺服器並透過 Playwright Chromium 執行核心唯讀檢查：
 
 - **公開頁面可用性**：`/`, `/brand`, `/videos`, `/partners`, `/blog`, `/reviews`, `/admin`（確保 HTTP 200、標題正確且無錯誤）。
 - **主要導覽**：首頁各項核心導覽連結與實際點擊切換。
