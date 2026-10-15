@@ -5,9 +5,27 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const username = (process.env.INITIAL_OWNER_USERNAME || 'lacozzi0210@gmail.com').trim().toLowerCase();
-  const password = process.env.INITIAL_OWNER_PASSWORD || 'hatepop0210';
-  const displayName = process.env.INITIAL_OWNER_DISPLAY_NAME || 'Max';
+  const username = process.env.INITIAL_OWNER_USERNAME?.trim().toLowerCase();
+  const password = process.env.INITIAL_OWNER_PASSWORD;
+  const displayName = process.env.INITIAL_OWNER_DISPLAY_NAME?.trim();
+
+  const missing = [
+    !username && 'INITIAL_OWNER_USERNAME',
+    !password && 'INITIAL_OWNER_PASSWORD',
+    !displayName && 'INITIAL_OWNER_DISPLAY_NAME',
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    throw new Error(`缺少必要環境變數：${missing.join(', ')}`);
+  }
+
+  if (!username || !password || !displayName) {
+    throw new Error('初始管理員設定不完整');
+  }
+
+  if (password.length < 12) {
+    throw new Error('INITIAL_OWNER_PASSWORD 至少需要 12 個字元');
+  }
 
   console.log(`[Seed] Checking for initial owner: ${username}`);
 
