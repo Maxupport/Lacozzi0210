@@ -1,4 +1,3 @@
-const { env } = require('process');
 require('dotenv').config({ path: '.env.local' });
 
 async function test() {

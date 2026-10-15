@@ -29,12 +29,14 @@ function onlyYouTubeLink(children: ReactNode): string {
 }
 
 const components: Components = {
-  p({ children, node: _node, ...props }) {
+  p({ children, node, ...props }) {
+    void node;
     const id = onlyYouTubeLink(children);
     if (id) return <YouTubeEmbed id={id} />;
     return <p {...props}>{children}</p>;
   },
-  a({ href, children, node: _node, ...props }) {
+  a({ href, children, node, ...props }) {
+    void node;
     const external = !!href && /^https?:\/\//.test(href);
     return (
       <a href={href} {...props} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
@@ -42,7 +44,8 @@ const components: Components = {
       </a>
     );
   },
-  img({ src, alt, node: _node, ...props }) {
+  img({ src, alt, node, ...props }) {
+    void node;
     if (!src) return null;
     return (
       // eslint-disable-next-line @next/next/no-img-element

@@ -44,8 +44,12 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   });
   if (!user || !user.isActive) return null;
 
-  const { isActive: _ignored, ...rest } = user;
-  return rest;
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    role: user.role,
+  };
 });
 
 /** 頁面用：未登入就導回登入頁（經由 logout 清除失效的 cookie） */

@@ -21,26 +21,90 @@ export interface Partner {
   content?: string;
 }
 
-const getPropertyText = (prop: any): string => {
+export interface NotionRichTextItem {
+  plain_text?: string;
+  annotations?: {
+    bold?: boolean;
+    italic?: boolean;
+    strikethrough?: boolean;
+    code?: boolean;
+  };
+  href?: string | null;
+}
+
+export interface NotionProperty {
+  type?: string;
+  title?: NotionRichTextItem[];
+  rich_text?: NotionRichTextItem[];
+  select?: { name?: string } | null;
+  url?: string | null;
+  multi_select?: Array<{ name?: string }>;
+  files?: Array<{
+    type?: 'external' | 'file' | string;
+    external?: { url?: string };
+    file?: { url?: string };
+  }>;
+}
+
+export interface NotionPage {
+  id: string;
+  created_time: string;
+  properties: Record<string, NotionProperty | undefined>;
+}
+
+export interface NotionBlockContent {
+  rich_text?: NotionRichTextItem[];
+  checked?: boolean;
+  language?: string;
+  type?: string;
+  external?: { url?: string };
+  file?: { url?: string };
+  caption?: NotionRichTextItem[];
+  icon?: { emoji?: string };
+  url?: string;
+}
+
+export interface NotionBlock {
+  id: string;
+  type: string;
+  paragraph?: NotionBlockContent;
+  heading_1?: NotionBlockContent;
+  heading_2?: NotionBlockContent;
+  heading_3?: NotionBlockContent;
+  bulleted_list_item?: NotionBlockContent;
+  numbered_list_item?: NotionBlockContent;
+  to_do?: NotionBlockContent;
+  toggle?: NotionBlockContent;
+  quote?: NotionBlockContent;
+  code?: NotionBlockContent;
+  divider?: NotionBlockContent;
+  image?: NotionBlockContent;
+  callout?: NotionBlockContent;
+  bookmark?: NotionBlockContent;
+  video?: NotionBlockContent;
+  [key: string]: unknown;
+}
+
+const getPropertyText = (prop: NotionProperty | undefined): string => {
   if (!prop) return '';
-  if (prop.type === 'title') return prop.title.map((t: any) => t.plain_text).join('');
-  if (prop.type === 'rich_text') return prop.rich_text.map((t: any) => t.plain_text).join('');
+  if (prop.type === 'title') return prop.title?.map((t: NotionRichTextItem) => t.plain_text || '').join('') || '';
+  if (prop.type === 'rich_text') return prop.rich_text?.map((t: NotionRichTextItem) => t.plain_text || '').join('') || '';
   if (prop.type === 'select') return prop.select?.name || '';
   if (prop.type === 'url') return prop.url || '';
   return '';
 };
 
-const getPropertyTags = (prop: any): string[] => {
-  if (!prop || prop.type !== 'multi_select') return [];
-  return prop.multi_select.map((s: any) => s.name);
+const getPropertyTags = (prop: NotionProperty | undefined): string[] => {
+  if (!prop || prop.type !== 'multi_select' || !prop.multi_select) return [];
+  return prop.multi_select.map((s) => s.name || '').filter(Boolean);
 };
 
-const getPropertyCover = (prop: any): string => {
-  if (!prop || prop.type !== 'files') return '';
+const getPropertyCover = (prop: NotionProperty | undefined): string => {
+  if (!prop || prop.type !== 'files' || !prop.files) return '';
   if (prop.files.length === 0) return '';
   const file = prop.files[0];
-  if (file.type === 'external') return file.external.url;
-  if (file.type === 'file') return file.file.url;
+  if (file.type === 'external') return file.external?.url || '';
+  if (file.type === 'file') return file.file?.url || '';
   return '';
 };
 
@@ -79,7 +143,7 @@ export const getPublishedPosts = async (withExcerpts = false): Promise<Post[]> =
     }
 
     const result = await response.json();
-    let postsWithoutBody = result.results.map((page: any) => {
+    const postsWithoutBody: Post[] = ((result.results as NotionPage[]) || []).map((page: NotionPage) => {
       const p = page.properties;
       return {
         id: page.id,
@@ -92,7 +156,7 @@ export const getPublishedPosts = async (withExcerpts = false): Promise<Post[]> =
         youtubeUrl: getPropertyText(p['YouTube'] || p['YouTube 連結'] || p['YouTubeUrl'] || p.Video),
         date: page.created_time,
       };
-    }).filter((post: any) => post.title);
+    }).filter((post: Post) => Boolean(post.title));
     
     if (withExcerpts) {
       for (const post of postsWithoutBody) {
@@ -108,14 +172,14 @@ export const getPublishedPosts = async (withExcerpts = false): Promise<Post[]> =
             }).then(r => r.json());
             
             if (blocksRes.results) {
-              for (const b of blocksRes.results) {
-                if (b.type === 'paragraph' && b.paragraph.rich_text?.length > 0) {
-                  post.excerpt = b.paragraph.rich_text.map((rt: any) => rt.plain_text).join('');
+              for (const b of (blocksRes.results as NotionBlock[])) {
+                if (b.type === 'paragraph' && (b.paragraph?.rich_text?.length || 0) > 0) {
+                  post.excerpt = b.paragraph?.rich_text?.map((rt: NotionRichTextItem) => rt.plain_text || '').join('') || '';
                   break; // found the first paragraph
                 }
               }
             }
-          } catch(e) {
+          } catch {
             // gracefully skip if error
           }
         }
@@ -129,10 +193,10 @@ export const getPublishedPosts = async (withExcerpts = false): Promise<Post[]> =
   }
 };
 
-const parseRichText = (richTextArr: any[]) => {
+const parseRichText = (richTextArr: NotionRichTextItem[] | undefined) => {
   if (!richTextArr) return '';
   return richTextArr.map((rt) => {
-    let text = rt.plain_text;
+    let text = rt.plain_text || '';
     if (rt.annotations) {
       if (rt.annotations.bold) text = `**${text}**`;
       if (rt.annotations.italic) text = `*${text}*`;
@@ -145,7 +209,7 @@ const parseRichText = (richTextArr: any[]) => {
 };
 
 const fetchNotionBlocksAsMarkdown = async (blockId: string): Promise<string> => {
-  let blocks: any[] = [];
+  let blocks: NotionBlock[] = [];
   let cursor: string | undefined = undefined;
   let hasMore = true;
 
@@ -175,7 +239,7 @@ const fetchNotionBlocksAsMarkdown = async (blockId: string): Promise<string> => 
     }
 
     const data = await response.json();
-    blocks = [...blocks, ...(data.results || [])];
+    blocks = [...blocks, ...((data.results as NotionBlock[]) || [])];
     
     hasMore = data.has_more;
     cursor = data.next_cursor;
@@ -189,7 +253,7 @@ const fetchNotionBlocksAsMarkdown = async (blockId: string): Promise<string> => 
 
   for (const block of blocks) {
     const type = block.type;
-    const content = block[type];
+    const content = (block[type] || {}) as NotionBlockContent;
     
     switch (type) {
       case 'paragraph':
@@ -225,11 +289,12 @@ const fetchNotionBlocksAsMarkdown = async (blockId: string): Promise<string> => 
       case 'divider':
         markdown += `---\n\n`;
         break;
-      case 'image':
-        const imgUrl = content.type === 'external' ? content.external.url : content.file.url;
+      case 'image': {
+        const imgUrl = content.type === 'external' ? content.external?.url || '' : content.file?.url || '';
         const caption = parseRichText(content.caption) || '';
         markdown += `![${caption}](${imgUrl})\n\n`;
         break;
+      }
       case 'callout':
         const icon = content.icon?.emoji || '💡';
         markdown += `> ${icon} ${parseRichText(content.rich_text)}\n\n`;
@@ -238,7 +303,7 @@ const fetchNotionBlocksAsMarkdown = async (blockId: string): Promise<string> => 
         markdown += `[${content.url}](${content.url})\n\n`;
         break;
       case 'video':
-        if (content.type === 'external' && content.external.url) {
+        if (content.type === 'external' && content.external?.url) {
           const url = content.external.url;
           // Extract YouTube ID safely
           let youtubeId = '';
@@ -269,7 +334,7 @@ export const getSinglePost = async (slug: string) => {
   let targetSlug = slug;
   try {
     targetSlug = decodeURIComponent(slug);
-  } catch(e) {
+  } catch {
     console.warn("Could not decode slug:", slug);
   }
   
@@ -341,7 +406,7 @@ export const getPartners = async (): Promise<Partner[]> => {
 
     const data = await response.json();
 
-    const parsedResults = await Promise.all(data.results.map(async (page: any) => {
+    const parsedResults: Partner[] = await Promise.all(((data.results as NotionPage[]) || []).map(async (page: NotionPage) => {
       const name = getPropertyText(page.properties['Name']);
       const role = getPropertyText(page.properties['Role']);
       
@@ -365,7 +430,7 @@ export const getPartners = async (): Promise<Partner[]> => {
         content
       };
     }));
-    return parsedResults.filter((p: any) => p.name); // 過濾掉空名字的項目
+    return parsedResults.filter((p: Partner) => Boolean(p.name)); // 過濾掉空名字的項目
   } catch (error) {
     console.error('Error fetching partners:', error);
     return [];

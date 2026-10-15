@@ -73,33 +73,71 @@ async function downloadAndUploadImage(
   }
 }
 
+interface NotionRichTextItem {
+  plain_text?: string;
+  annotations?: {
+    bold?: boolean;
+    italic?: boolean;
+    strikethrough?: boolean;
+    code?: boolean;
+  };
+  href?: string | null;
+}
+
+interface NotionProperty {
+  type?: string;
+  title?: NotionRichTextItem[];
+  rich_text?: NotionRichTextItem[];
+  select?: { name?: string } | null;
+  url?: string | null;
+  multi_select?: Array<{ name?: string }>;
+  files?: Array<{
+    type?: 'external' | 'file' | string;
+    external?: { url?: string };
+    file?: { url?: string };
+  }>;
+}
+
+interface NotionBlockContent {
+  rich_text?: NotionRichTextItem[];
+  type?: string;
+  external?: { url?: string };
+  file?: { url?: string };
+  caption?: NotionRichTextItem[];
+}
+
+interface NotionBlock {
+  type: string;
+  [key: string]: unknown;
+}
+
 // 輔助函式：解析 Notion 屬性文字
-const getPropText = (prop: any): string => {
+const getPropText = (prop: NotionProperty | undefined): string => {
   if (!prop) return '';
-  if (prop.type === 'title') return prop.title.map((t: any) => t.plain_text).join('');
-  if (prop.type === 'rich_text') return prop.rich_text.map((t: any) => t.plain_text).join('');
+  if (prop.type === 'title') return prop.title?.map((t: NotionRichTextItem) => t.plain_text || '').join('') || '';
+  if (prop.type === 'rich_text') return prop.rich_text?.map((t: NotionRichTextItem) => t.plain_text || '').join('') || '';
   if (prop.type === 'select') return prop.select?.name || '';
   if (prop.type === 'url') return prop.url || '';
   return '';
 };
 
-const getPropTags = (prop: any): string[] => {
-  if (!prop || prop.type !== 'multi_select') return [];
-  return prop.multi_select.map((s: any) => s.name);
+const getPropTags = (prop: NotionProperty | undefined): string[] => {
+  if (!prop || prop.type !== 'multi_select' || !prop.multi_select) return [];
+  return prop.multi_select.map((s) => s.name || '').filter(Boolean);
 };
 
-const getPropCover = (prop: any): string => {
-  if (!prop || prop.type !== 'files' || prop.files.length === 0) return '';
+const getPropCover = (prop: NotionProperty | undefined): string => {
+  if (!prop || prop.type !== 'files' || !prop.files || prop.files.length === 0) return '';
   const file = prop.files[0];
-  if (file.type === 'external') return file.external.url;
-  if (file.type === 'file') return file.file.url;
+  if (file.type === 'external') return file.external?.url || '';
+  if (file.type === 'file') return file.file?.url || '';
   return '';
 };
 
-const parseRichText = (richTextArr: any[]) => {
+const parseRichText = (richTextArr: NotionRichTextItem[] | undefined) => {
   if (!richTextArr) return '';
   return richTextArr.map((rt) => {
-    let text = rt.plain_text;
+    let text = rt.plain_text || '';
     if (rt.annotations) {
       if (rt.annotations.bold) text = `**${text}**`;
       if (rt.annotations.italic) text = `*${text}*`;
@@ -112,7 +150,7 @@ const parseRichText = (richTextArr: any[]) => {
 };
 
 async function fetchNotionBlocks(blockId: string): Promise<string> {
-  let blocks: any[] = [];
+  let blocks: NotionBlock[] = [];
   let cursor: string | undefined = undefined;
   let hasMore = true;
 
@@ -130,7 +168,7 @@ async function fetchNotionBlocks(blockId: string): Promise<string> {
 
     if (!res.ok) break;
     const data = await res.json();
-    blocks = [...blocks, ...(data.results || [])];
+    blocks = [...blocks, ...((data.results as NotionBlock[]) || [])];
     hasMore = data.has_more;
     cursor = data.next_cursor;
   }
@@ -138,7 +176,7 @@ async function fetchNotionBlocks(blockId: string): Promise<string> {
   let markdown = '';
   for (const block of blocks) {
     const type = block.type;
-    const content = block[type];
+    const content = (block[type] || {}) as NotionBlockContent;
 
     switch (type) {
       case 'paragraph':
@@ -165,13 +203,14 @@ async function fetchNotionBlocks(blockId: string): Promise<string> {
       case 'divider':
         markdown += `---\n\n`;
         break;
-      case 'image':
-        const imgUrl = content.type === 'external' ? content.external.url : content.file.url;
+      case 'image': {
+        const imgUrl = content.type === 'external' ? content.external?.url || '' : content.file?.url || '';
         const caption = parseRichText(content.caption) || '圖片';
         markdown += `![${caption}](${imgUrl})\n\n`;
         break;
+      }
       case 'video':
-        if (content.type === 'external' && content.external.url) {
+        if (content.type === 'external' && content.external?.url) {
           markdown += `\n${content.external.url}\n\n`;
         }
         break;

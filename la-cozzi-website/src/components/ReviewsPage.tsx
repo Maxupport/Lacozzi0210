@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Star, Quote, UserCircle, PlusCircle, CheckCircle2, AlertCircle, X, Sparkles, ChevronRight } from 'lucide-react';
+import { Star, Quote, UserCircle, CheckCircle2, AlertCircle, X, Sparkles, ChevronRight } from 'lucide-react';
 import type { PublicReview } from '@/lib/content';
 
 export default function ReviewsPage({ initialReviews }: { initialReviews: PublicReview[] }) {

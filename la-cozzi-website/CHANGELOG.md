@@ -11,11 +11,13 @@
 - 本機環境變數範本。
 - GitHub Pull Request 與 Issue 範本。
 - `typecheck` npm 指令。
+- GitHub Actions CI 工作流程（執行 typecheck、lint 與 build）。
 
 ### 變更
 
 - README 改為 La Cozzi 官網實際開發與維運說明。
 - 管理員 seed 改為必須明確提供帳號、密碼與顯示名稱，不再使用內建預設值。
+- 清理既有 ESLint 基準問題至 0 錯誤、0 警告，補齊精確 TypeScript 型別並移除未使用項目。
 
 ### 安全
 

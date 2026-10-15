@@ -8,7 +8,6 @@ import {
   Trash2,
   Upload,
   CheckCircle2,
-  XCircle,
   AlertCircle,
   Music,
   User,

@@ -4,7 +4,7 @@ import { getPublishedPostsWithUpdatedAt } from '@/lib/content';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lacozzi.com';
   
-  let posts: any[] = [];
+  let posts: Awaited<ReturnType<typeof getPublishedPostsWithUpdatedAt>> = [];
   try {
     posts = await getPublishedPostsWithUpdatedAt();
   } catch (error) {

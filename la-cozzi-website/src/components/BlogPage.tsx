@@ -59,7 +59,7 @@ export default function BlogPage({ posts }: { posts: PublicPost[] }) {
           {filteredPosts.map((post, i) => {
             const isExternal = Boolean(post.externalUrl || post.slug.startsWith('http'));
             const href = post.externalUrl || (post.slug.startsWith('http') ? post.slug : `/blog/${post.slug}`);
-            const Tag = isExternal ? 'a' : Link;
+            const Tag: React.ElementType = isExternal ? 'a' : Link;
 
             let youtubeId = '';
             if (post.youtubeUrl) {
@@ -81,7 +81,7 @@ export default function BlogPage({ posts }: { posts: PublicPost[] }) {
                   </div>
                 ) : (
                   <Tag 
-                    href={href as any}
+                    href={href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     className="h-48 bg-stone-800 relative overflow-hidden shrink-0 block z-10"
@@ -99,7 +99,7 @@ export default function BlogPage({ posts }: { posts: PublicPost[] }) {
                 )}
                 
                 <Tag
-                  href={href as any}
+                  href={href}
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noopener noreferrer" : undefined}
                   className="p-8 flex flex-col grow z-10"
