@@ -12,7 +12,7 @@
 - GitHub Pull Request 與 Issue 範本。
 - `typecheck` npm 指令。
 - `test:smoke` npm 指令。
-- GitHub Actions CI 工作流程（執行 typecheck、lint 與 build）。
+- GitHub Actions CI 工作流程（執行 typecheck、lint、build 與 Playwright Chromium smoke tests，並升級 actions 至 v5）。
 - Playwright Chromium 核心唯讀 Smoke Tests（涵蓋 7 大核心路徑可用性、主要導覽、報價安全驗證、後台登入頁與 SEO 端點）。
 
 ### 變更
