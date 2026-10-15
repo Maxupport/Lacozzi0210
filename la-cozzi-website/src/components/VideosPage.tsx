@@ -1,6 +1,6 @@
 "use client";
 
-import { ListMusic, Play, Sparkles, ExternalLink, Music2, Mic2, Heart, ArrowRight } from 'lucide-react';
+import { ListMusic, Sparkles, ExternalLink, Music2, Mic2, Heart, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface VideosPageProps {

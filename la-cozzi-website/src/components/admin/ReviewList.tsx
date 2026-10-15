@@ -7,16 +7,10 @@ import {
   Plus,
   Star,
   CheckCircle2,
-  XCircle,
   Trash2,
   Edit,
-  Clock,
   AlertCircle,
-  ExternalLink,
-  X,
   Facebook,
-  Globe,
-  Tag,
 } from 'lucide-react';
 import {
   saveReview,
@@ -43,7 +37,6 @@ export default function ReviewList({ reviews }: { reviews: AdminReviewItem[] }) 
   const router = useRouter();
   const [items, setItems] = useState<AdminReviewItem[]>(reviews);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
-  const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -107,11 +100,9 @@ export default function ReviewList({ reviews }: { reviews: AdminReviewItem[] }) 
     setItems((prev) =>
       prev.map((x) => (x.id === r.id ? { ...x, status: nextStatus } : x))
     );
-    setBusyId(r.id);
     setErrorMsg('');
 
     const res = await toggleReviewStatus(r.id);
-    setBusyId(null);
 
     if (!res.ok) {
       setItems((prev) =>
@@ -129,11 +120,9 @@ export default function ReviewList({ reviews }: { reviews: AdminReviewItem[] }) 
     if (!confirm(`確定要刪除「${r.name}」的評價嗎？此動作無法復原。`)) return;
 
     setItems((prev) => prev.filter((x) => x.id !== r.id));
-    setBusyId(r.id);
     setErrorMsg('');
 
     const res = await deleteReview(r.id);
-    setBusyId(null);
 
     if (!res.ok) {
       setItems(reviews);
