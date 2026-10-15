@@ -37,6 +37,22 @@ Vercel 實際回復權限、資料庫備份位置與還原步驟仍待確認，�
 
 ## Smoke tests
 
+### 本機自動化 Smoke Tests 指令
+
+```bash
+npm run test:smoke
+```
+
+測試會啟動 Production build 伺服器並透過 Playwright Chromium 執行核心唯讀檢查：
+
+- **公開頁面可用性**：`/`, `/brand`, `/videos`, `/partners`, `/blog`, `/reviews`, `/admin`（確保 HTTP 200、標題正確且無錯誤）。
+- **主要導覽**：首頁各項核心導覽連結與實際點擊切換。
+- **報價表單安全驗證**：Email 必填與格式驗證，全程攔截網路請求以確保絕無對外發出 POST。
+- **後台登入頁**：確認欄位與登入按鈕存在，不填入帳密亦不進行提交。
+- **SEO 基本端點**：`/robots.txt` 與 `/sitemap.xml` 內容驗證。
+
+### 手動 Smoke Tests（上線後核對）
+
 - `/` 首頁與報價區塊。
 - `/brand` 樂團簡介。
 - `/videos` 演出影音。

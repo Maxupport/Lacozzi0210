@@ -52,10 +52,10 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 
 ### 品質保證
 
-- 尚未建立正式的自動化測試。
-- 尚未建立持續整合流程。
-- ESLint 目前有 32 個錯誤與 17 個警告。
-- production build 在本次受限環境中，因無法下載 Google Fonts 而失敗。
+- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`）。
+- 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、build 與 smoke tests。
+- ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
+- production build 已驗證可正常建置通過。
 - Next.js 偵測到上層目錄還有另一個 lockfile，造成 workspace root 警告。
 
 ### 資料與發布
@@ -86,9 +86,9 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | --- | --- | --- |
 | Git 狀態 | 通過 | 盤點時 `main` 與遠端同步 |
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
-| ESLint | 未通過 | 32 個錯誤、17 個警告 |
-| Production build | 未完成 | 受限環境無法下載三組 Google Fonts |
-| 自動化測試 | 未建立 | 目前只有零散測試或除錯腳本 |
+| ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
+| Production build | 通過 | 本機與 CI 均編譯成功 |
+| 自動化測試 | 通過 | Playwright Chromium 核心唯讀 smoke tests（AG-002 完成） |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
 
 ## 尚待確認事項
