@@ -24,6 +24,7 @@
 - [維運手冊](./OPERATIONS.md)
 - [專案風險清單](./RISK_REGISTER.md)
 - [AG 執行任務範本](./AG_TASK_TEMPLATE.md)
+- [AG-001：清理 ESLint 基準並建立 CI](./tasks/AG-001-ESLINT-CI.md)
 - [正式上線檢查表](./RELEASE_CHECKLIST.md)
 
 ## 文件效力
