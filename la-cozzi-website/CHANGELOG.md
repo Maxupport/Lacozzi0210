@@ -11,6 +11,7 @@
 - 本機環境變數範本。
 - GitHub Pull Request 與 Issue 範本。
 - `typecheck` npm 指令。
+- GitHub Actions CI 工作流程（執行 typecheck、lint 與 build）。
 
 ### 變更
 
