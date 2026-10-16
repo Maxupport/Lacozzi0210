@@ -22,6 +22,7 @@
 - 管理員 seed 改為必須明確提供帳號、密碼與顯示名稱，不再使用內建預設值。
 - 清理既有 ESLint 基準問題至 0 錯誤、0 警告，補齊精確 TypeScript 型別並移除未使用項目。
 - 更新維運手冊 (`docs/OPERATIONS.md`)、部署手冊 (`docs/DEPLOYMENT.md`)、環境變數手冊 (`docs/ENVIRONMENT.md`)、現況基準 (`docs/CURRENT_STATE.md`)、風險登記冊 (`docs/RISK_REGISTER.md`) 與 Roadmap (`docs/PROJECT_ROADMAP.md`)，精確區分 Vercel Rollback 與 Promote 操作，明定線上版本以 Vercel Current/Rollback 為準（GitHub API 僅供歷程比對），並將「必要環境變數齊全」調整為部分完成／待確認直到核對 Vercel 線上配置。
+- 固定 Next.js 專案根目錄：於 `next.config.ts` 明確配置 `turbopack.root` 為專案根目錄（不依賴執行時工作目錄），由 Next.js 16 自動同步 Output File Tracing 根目錄，消除多重 lockfile 結構下的 workspace root 警告，確保本機、CI 與 Vercel 的專案範圍判定一致，且未刪除或修改任何 lockfile、套件或前台功能（AG-005）。
 
 ### 安全
 
