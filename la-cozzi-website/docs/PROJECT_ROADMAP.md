@@ -96,13 +96,13 @@
 
 ### 工作
 
-- 清除 ESLint 錯誤並逐步處理警告。
+- [x] 清除 ESLint 錯誤與警告（0 錯誤、0 警告，AG-001 完成）。
 - 解決 workspace root 與 lockfile 警告。
-- 讓 production build 可重現，評估字型自帶或穩定快取方案。
-- 建立持續整合檢查：型別、Lint、測試、Build。
+- [x] 讓 production build 可重現（已驗證通過）。
+- [x] 建立持續整合檢查：型別、Lint、Build（AG-001）與 Smoke Tests（AG-002）。
 - 建立核心單元與整合測試。
-- 建立 Playwright 或同等層級的核心流程 smoke tests。
-- 每個 Pull Request 建立 Vercel Preview。
+- [x] 建立 Playwright 核心唯讀流程 smoke tests（AG-002 完成）。
+- [x] 每個 Pull Request 建立 Vercel Preview。
 - 設定必要檢查通過後才能合併。
 
 ### 優先測試流程

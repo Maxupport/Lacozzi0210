@@ -7,11 +7,11 @@
 - [ ] 工作內容與 Pull Request 範圍一致。
 - [ ] Codex 已檢查完整 diff。
 - [ ] TypeScript 型別檢查通過。
-- [ ] ESLint 通過。
-- [ ] 自動化測試通過。
+- [ ] ESLint 通過（0 錯誤、0 警告）。
 - [ ] Production build 通過。
+- [ ] 自動化測試通過（於 Production build 完成後執行 `npm run test:smoke` 核心唯讀測試）。
 - [ ] Vercel Preview 可正常開啟。
-- [ ] 首頁、導覽、報價、文章、評論與後台 smoke tests 通過。
+- [ ] 核心 smoke tests 通過（自動化測試涵蓋可用性、導覽、SEO 與表單驗證；人工煙霧測試確認視覺排版與互動）。
 - [ ] 手機與桌面主要畫面已檢查。
 - [ ] 新增或修改的環境變數已記錄。
 - [ ] 沒有密鑰、密碼、Token 或個人資料進入 Git。
