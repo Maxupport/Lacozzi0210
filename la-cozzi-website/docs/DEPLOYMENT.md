@@ -1,12 +1,14 @@
 # 部署手冊
 
-> 目前部署於 Vercel。GitHub 與 Vercel 的實際管理設定仍待擁有者確認。
+> 目前部署於 Vercel（專案名稱：`lacozzi0210`，團隊：`maxupports-projects`，區域：`sin1` 新加坡）。
 
 ## 環境
 
-- Local：開發者本機。
-- Preview：Pull Request 或非正式分支的 Vercel 部署。
-- Production：預期由 `main` 觸發的正式站部署，實際設定仍待確認。
+- **Local**：開發者本機，由 `.env.local` 讀取設定。
+- **CI**：GitHub Actions（`.github/workflows/ci.yml`），使用隔離 mock 變數執行 typecheck、lint、build 與 smoke tests。
+- **Preview**：Pull Request 或非正式分支的 Vercel 部署。
+  - **重要隔離警語**：目前 Preview 環境無法證明與正式環境完全隔離（預期共用 Supabase PostgreSQL、`media` Storage bucket 與 GAS 報價 webhook）。因此**嚴禁在 Preview 站點執行任何實質寫入、資料變更或發送詢價測試**。
+- **Production**：綁定 `main` 分支觸發的正式站部署，網址為 `https://lacozzi0210.vercel.app`。
 
 ## 發布流程
 
@@ -14,26 +16,39 @@
 2. 完成單一目的的修改。
 3. 通過型別、Lint、測試與 production build。
 4. 建立 Pull Request 與 Vercel Preview。
-5. Codex 檢查完整 diff 與 Preview。
+5. Codex 檢查完整 diff 與 Preview（嚴格僅進行唯讀核對）。
 6. 涉及前台內容或重要行為時，由專案負責人確認。
 7. 完成正式上線檢查表。
 8. 合併至 `main`。
-9. 觀察 Vercel Production 部署。
-10. 執行正式站 smoke tests。
+9. 觀察 Vercel Production 部署（由 `vercel[bot]` 自動觸發）。
+10. 執行正式站 smoke tests：
+    ```bash
+    PLAYWRIGHT_TEST_BASE_URL=https://lacozzi0210.vercel.app npm run test:smoke
+    ```
 11. 更新 CHANGELOG 與版本紀錄。
 
 ## 回復方式
 
-沒有資料庫異動時，優先使用 Vercel 回復至上一個已驗證的 Production Deployment。
+詳細操作手冊、停止條件與備份盤點請參閱專門文件：[災害回復與備份準備度手冊 (RECOVERY.md)](./RECOVERY.md)（目前準備度狀態：**部分完成 / 待確認**）。
 
-有資料庫異動時：
+### 無資料庫異動時（Vercel 回復）
+1. **方案支援範圍**：Vercel Hobby 方案支援 Instant Rollback 回復至**緊鄰的前一個正式部署**；Pro 與 Enterprise 方案則可選擇回復至**其他符合資格的歷史正式部署**。
+2. **目前線上版本判定權威**：正式網域當前實際指向之版本**一律以 Vercel 控制台 Current / Rollback 狀態為準**；GitHub Deployments API 僅供歷史紀錄與 Commit 交叉比對，無法感知線上回滾。
+3. 進入 Vercel 控制台 `https://vercel.com/maxupports-projects/lacozzi0210/deployments`。
+4. 找到要回復的歷史 Production Deployment（Hobby 方案為緊鄰的前一個 Ready 部署，例如 Commit `9e99dae`）。
+5. 點選「...」功能選單，選擇「Instant Rollback」並確認（注意：此為專屬應急回滾，不可與常規發布的 Promote to Production 混淆）。
+6. 正式流量將在數秒內切換回該歷史部署。
+7. **網域鎖定與自動部署暫停注意**：
+   - 執行 Instant Rollback 後，Vercel 會進入「Rollback Active」狀態，**並自動停用後續 push/merge 到 `main` 時對正式網域的自動指派**，避免未修復的程式覆蓋緊急回滾。
+   - **解除鎖定步驟**：修復完成後，必須點選頂部「Undo Rollback」撤銷回滾，或進入最新通過驗證的修復部署點選「Promote to Production」，方能重新指派正式網域並恢復日後自動部署。
+8. 亦可於本機執行 `git revert <故障SHA>`，經過 CI 與 PR 快速合併回 `main` 重新部署（推薦需跨多版本回滾或需完整 Git 審查追蹤時）。
 
-1. 先判斷上一版應用程式是否仍與新 schema 相容。
-2. 若相容，先回復應用程式。
-3. 若不相容，依預先核准的 migration 回復方案處理。
-4. 不得在事故中臨時設計資料刪除指令。
-
-Vercel 實際回復權限、資料庫備份位置與還原步驟仍待確認，確認後補入本文件。
+### 有資料庫異動時（停止條件與順序）
+1. **停止條件**：若新舊 Schema 不相容、migration 中斷或出現未預期的資料損毀，立即停止新的部署。
+2. 先評估舊版程式碼是否仍相容於現有 Schema。
+3. 若相容，可優先回復應用程式恢復前端瀏覽。
+4. 若不相容，必須依預先核准的向下 migration 腳本處理，或進入唯讀維護狀態評估 Supabase 資料庫還原。
+5. **嚴禁在事故中臨時手寫資料刪除或結構破壞指令**。
 
 ## Smoke tests
 

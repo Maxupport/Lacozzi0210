@@ -31,13 +31,20 @@
 - `NOTION_DATABASE_ID`
 - `NOTION_PARTNERS_DATABASE_ID`
 
-## 環境隔離
+## 環境隔離盤點現況
 
-- Local：只連接開發資料庫與開發用 Storage。
-- Preview：應使用獨立測試資料，禁止寫入正式資料庫。
-- Production：只有正式部署可使用正式密鑰。
+依據 AG-003 唯讀盤點結果，各環境之配置與隔離狀態如下：
 
-目前 Preview 與 Production 是否已完整隔離仍待確認。在確認以前，任何會寫入資料的 Preview 測試都必須暫停。
+| 環境 | 變數注入來源 | 資料庫連線目標 | Storage 目標 | 報價 Webhook 目標 | 隔離驗證結論 |
+| --- | --- | --- | --- | --- | --- |
+| **Local (本機開發)** | `.env.local` (Git 忽略) | 正式 Supabase DB (共用) | 正式 `media` Bucket (共用) | 正式 GAS Webhook (共用) | **未隔離**（本機寫入操作會直接異動線上資料） |
+| **CI (GitHub Actions)** | `.github/workflows/ci.yml` 寫死 mock 變數 | 虛擬 `localhost:5432` | 未配置（測試中攔截） | 未配置（測試中攔截） | **完全隔離**（無正式密鑰，絕不接觸正式環境） |
+| **Preview (Vercel PR)** | Vercel Project 變數 | 預期繼承專案環境變數（未分離） | 預期繼承專案環境變數（未分離） | 預期繼承專案環境變數（未分離） | **無法證明隔離**（預期直接連上正式環境） |
+| **Production (正式站)** | Vercel Project 變數 | 正式 Supabase DB | 正式 `media` Bucket | 正式 GAS Webhook | **正式營運目標** |
+
+### 核心安全規範：強制維持「禁止 Preview 寫入測試」
+- **證據支持**：Vercel 專案環境變數若未設定分流，Preview 部署預設將繼承專案中所有共用變數。目前程式庫內未配置任何環境切換邏輯，前端 `LandingPage.tsx` 直接發送至 `NEXT_PUBLIC_QUOTE_WEBHOOK_URL`，`src/lib/storage.ts` 固定寫入 `media` bucket。
+- **嚴格禁令**：**在未建立獨立 Staging/Dev 專案並證明完全隔離以前，嚴禁在 Preview 站點進行任何實質寫入、資料變更、使用者登入測試或表單送出測試！** 所有 Preview 驗收必須嚴格維持唯讀。
 
 ## 輪替原則
 
