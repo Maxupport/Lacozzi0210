@@ -62,7 +62,8 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 
 - 已有 Prisma schema，但尚未看到可追蹤的 migration 歷史。
 - 正式環境備份與回復準備度已完成盤點與文件化（AG-003 部分完成 / 待確認，詳見 `docs/RECOVERY.md`）。
-- Vercel 具備 Instant Rollback 與 Git Revert 能力；需注意 Instant Rollback 具方案限制且會鎖定網域暫停自動部署，需手動 Promote 或 Undo 解除鎖定。
+- Vercel 具備 Instant Rollback（Hobby 方案支援前一個正式部署，Pro/Enterprise 可選其他歷史部署）與 Git Revert 能力；需注意 Instant Rollback 會鎖定網域並暫停自動部署，需透過 Undo Rollback 或修復後 Promote 解除鎖定。
+- 正式網域當前指向版本一律以 Vercel 控制台 Current / Rollback 為準，GitHub Deployments API 僅供歷程交叉比對。
 - Supabase 方案未確認前視為無可依賴備份，且資料庫備份不包含 Storage 實體檔案。
 - Preview 與 Production 的環境隔離狀態已完成盤點，確認無法證明隔離，並已確立「禁止 Preview 寫入測試」安全規則。
 - 正式上線後的 smoke test 與回復停止條件已制度化。
@@ -92,6 +93,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | Production build | 通過 | 本機與 CI 均編譯成功 |
 | 自動化測試 | 通過 | Playwright Chromium 核心唯讀 smoke tests（AG-002 完成） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
+| 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
 
 ## 尚待確認事項
@@ -102,6 +104,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - [x] Preview 與 Production 隔離狀態（確認無法證明隔離，嚴格維持「禁止 Preview 寫入測試」）。
 - [x] seed 程式碼預設帳密 fallback（已於基礎治理移除）。
 - [ ] 確認正式管理員密碼是否曾使用 seed fallback 並安排輪替。
+- [ ] Vercel 各環境環境變數實際配置與套用範圍核對（待專案負責人登入控制台查驗）。
 - [ ] Supabase 專案方案等級（未確認前視為無可依賴備份；若為 Free 方案無可依賴備份與 UI 還原點；若為 Pro 方案具每日自動備份）。
 - [ ] Supabase 備份保留天數與 PITR (時間點還原) 是否啟用。
 - [ ] Supabase 最近一次成功備份時間點（需專案負責人至控制台查閱）。

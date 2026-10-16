@@ -4,8 +4,8 @@
 
 | 服務 | 用途 | 擁有者／管理入口 | 備份或回復狀態 |
 | --- | --- | --- | --- |
-| GitHub | 程式碼、CI 流程與版本管理 | 專案負責人 (`Maxupport`)<br>`https://github.com/Maxupport/Lacozzi0210` | 已具備（完整 Git 歷程與 GitHub Deployments） |
-| Vercel | Next.js 應用程式部署 (`sin1`) | 待確認<br>`https://vercel.com/maxupports-projects/lacozzi0210` | 已具備回滾機制（支援 Instant Rollback 或 Git Revert；注意 Instant Rollback 具方案限制且會鎖定網域暫停自動部署） |
+| GitHub | 程式碼、CI 流程與版本管理 | 專案負責人 (`Maxupport`)<br>`https://github.com/Maxupport/Lacozzi0210` | 已具備（完整 Git 歷程與 GitHub Deployments；僅供歷程與 Commit 交叉比對） |
+| Vercel | Next.js 應用程式部署 (`sin1`) | 待確認<br>`https://vercel.com/maxupports-projects/lacozzi0210` | 已具備回滾機制（Hobby 支援前一個正式部署，Pro/Enterprise 可選其他歷史部署；Instant Rollback 會鎖定網域暫停自動部署，需 Undo 或 Promote 解除；線上版本以 Vercel Current / Rollback 為準） |
 | PostgreSQL | 主要內容與帳號資料 (Supabase 託管) | 待確認<br>`https://supabase.com/dashboard/project/<project-ref>/database/backups` | 未確認（方案未確認前視為無可依賴備份；且**資料庫備份不包含 Storage 實體檔案**） |
 | Supabase Storage | 公開媒體檔案 (`media` bucket) | 待確認<br>`https://supabase.com/dashboard/project/<project-ref>/storage/buckets` | 尚未具備（無自動備份，僅歷史文章圖檔可由 Notion 重建；資料庫備份不含此處檔案） |
 | 報價 webhook | 報價表單處理 (Google Apps Script) | 待確認<br>`https://script.google.com/` | 未確認（由外部 GAS 專案維護） |
@@ -25,9 +25,9 @@
 
 1. 確認影響範圍與開始時間。
 2. 暫停新的正式部署與 migration。
-3. 檢查最近一次部署、環境變數與外部服務狀態。
+3. 檢查最近一次部署、環境變數與外部服務狀態（線上版本一律以 Vercel Current / Rollback 狀態為準）。
 4. 若最近部署與事故高度相關：
-   - 無資料庫異動：使用 Vercel Instant Rollback（或 Git Revert）切回上一個已驗證版本；若使用 Instant Rollback，修復後需手動 Promote 解除鎖定。
+   - 無資料庫異動：使用 Vercel Instant Rollback（或 Git Revert）切回上一個已驗證版本；若使用 Instant Rollback，修復後需手動 Promote to Production 解除鎖定。
    - 有資料庫異動：依 [RECOVERY.md](./RECOVERY.md) 評估向下相容性與回復順序，嚴禁臨時手寫刪除指令。
 5. 執行核心 smoke tests：`npm run test:smoke` 與手動路徑核對。
 6. 記錄原因、影響、處理方式與預防措施。

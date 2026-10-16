@@ -12,11 +12,11 @@
 
 | 服務名稱 | 用途說明 | 供應商 / 託管平台 | 擁有者 / 管理入口 | 備份現況 | 回復狀態評估 |
 | --- | --- | --- | --- | --- | --- |
-| **前端與 API 運算** | 官網前台展示、Server Actions、後台管理介面 | Vercel (`sin1` 新加坡區域) | 待確認<br>`https://vercel.com/maxupports-projects/lacozzi0210` | 保存歷史 Deployments（不可變構建產物） | **已具備回滾機制（部分完成 / 待確認）**（支援 Instant Rollback 或 Git Revert；需注意 Rollback 後會鎖定網域並暫停自動部署，且 Instant Rollback 有方案限制） |
+| **前端與 API 運算** | 官網前台展示、Server Actions、後台管理介面 | Vercel (`sin1` 新加坡區域) | 待確認<br>`https://vercel.com/maxupports-projects/lacozzi0210` | 保存歷史 Deployments（不可變構建產物） | **已具備回滾機制（部分完成 / 待確認）**（Hobby 方案支援回滾至前一個正式部署，Pro/Enterprise 可選其他歷史部署；需注意 Rollback 後會鎖定網域並暫停自動部署，需 Undo 或 Promote 解除） |
 | **關聯式資料庫** | 帳號、文章、夥伴、評論等系統結構化資料 | Supabase (PostgreSQL 15+) | 待確認<br>`https://supabase.com/dashboard/project/<project-ref>/database/backups` | **方案未確認前視為無可依賴備份**；Free 方案不具備可依賴備份與 UI 還原點；Pro 方案提供每日備份。**注意：資料庫備份不包含 Storage 實體檔案** | **未確認**（方案等級待確認，缺少控制台查閱權限，且尚未執行非正式環境演練） |
 | **物件儲存 (Storage)** | 文章封面、夥伴照片等靜態媒體檔案 | Supabase Storage (`media` bucket) | 待確認<br>`https://supabase.com/dashboard/project/<project-ref>/storage/buckets` | 無自動備份；無物件版本控制；歷史內容可由 Notion 重建；**資料庫備份不包含此處實體檔案** | **尚未具備**（後台直接上傳之媒體無異地備份，僅歷史資料可部分重建） |
 | **報價 Webhook** | 官網詢價表單接收端點 | Google Apps Script (GAS) | 待確認<br>`https://script.google.com/` | GAS 內建版本歷史（由指令碼擁有者維護） | **未確認**（無法由本專案管理端點可用性與備份） |
-| **原始碼與版本控制** | 程式碼、CI 流程、核心測試、文件 | GitHub (`Maxupport/Lacozzi0210`) | 專案負責人 (`Maxupport`)<br>`https://github.com/Maxupport/Lacozzi0210` | Git 分散式版本紀錄 + GitHub 託管 | **已具備能力**（完整 Commit 歷史與 GitHub Deployments 記錄） |
+| **原始碼與版本控制** | 程式碼、CI 流程、核心測試、文件 | GitHub (`Maxupport/Lacozzi0210`) | 專案負責人 (`Maxupport`)<br>`https://github.com/Maxupport/Lacozzi0210` | Git 分散式版本紀錄 + GitHub 託管 | **已具備能力**（完整 Commit 歷史與 GitHub Deployments 記錄；僅供歷史紀錄與交叉比對） |
 
 ---
 
@@ -32,13 +32,14 @@
 - **正式網址**：`https://lacozzi0210.vercel.app`
 - **自動部署規則**：推送到 `main` 或 PR 合併至 `main` 時，GitHub App (`vercel[bot]`) 自動觸發 Production Deployment。
 
-### 最新成功 Production Deployment 辨識方式
-1. **Vercel 控制台**：
+### 最新成功 Production Deployment 與目前線上版本辨識方式
+1. **唯一權威標準：Vercel 控制台 Current / Rollback 狀態**：
    - 進入專案「Deployments」頁面，篩選 Environment 為 `Production`。
-   - 頂端帶有 `Current` 標籤且狀態為綠色勾選 (`Ready`) 的項目即為線上最新運行版本。
-2. **GitHub API 查詢**：
+   - 頂端標記有 `Current` 標籤且狀態為綠色勾選 (`Ready`) 的項目，或於頂部橫幅顯示為作用中回滾 (`Rollback`) 的部署，**為唯一能判定正式網域 (`lacozzi0210.vercel.app`) 當前實際指向的權威版本**。
+2. **GitHub Deployments API 之定位與重要限制**：
    - 執行 `gh api repos/Maxupport/Lacozzi0210/deployments?environment=Production`。
-   - 最新狀態為 `state: "success"` 的項目即為當前線上版本（例如 Commit `9cca728`，Deployment ID `7110544236`，唯一網址 `https://lacozzi0210-1ewj0hg7d-maxupports-projects.vercel.app`）。
+   - **功能定位**：GitHub Deployments API **僅能作為歷史部署事件紀錄與 Commit SHA 之交叉比對之用**。
+   - **限制警告**：GitHub API **無法感知** Vercel 控制台內部發生的 Instant Rollback 路由覆蓋！若線上已執行 Instant Rollback，GitHub API 仍會顯示原本 push 到 `main` 的部署為成功，**絕對不能以 GitHub Deployments API 判定目前正式網域運作中的版本**，必須一律以 Vercel 控制台狀態為準。
 
 ### 如何找到上一個已驗證版本
 1. 在 Vercel 控制台 Deployments 列表中，尋找目前 Production Deployment 前一個狀態為 `Ready` 的項目（例如 Commit `9e99dae`，Deployment ID `7096927605`，專屬網址 `https://lacozzi0210-48cjx3m5s-maxupports-projects.vercel.app`）。
@@ -46,15 +47,18 @@
 
 ### 回復操作步驟
 
-#### 方法 A：Vercel Instant Rollback（秒級生效，適用 Pro 方案）
+#### 方法 A：Vercel Instant Rollback（秒級生效）
 
-> **方案限制說明**：Vercel 的一鍵「Instant Rollback」原生為 **Pro 與 Enterprise** 方案功能。若本專案團隊目前為 Hobby (Free) 方案，控制台可能不具備該按鈕，或僅能透過手動「Assign Domain」或「方法 B：Git Revert 流程」完成回滾。目前專案方案待專案負責人確認。
+> **方案支援範圍**：
+> - **Hobby 方案**：支援 Instant Rollback，但**僅限回復至緊鄰的前一個正式部署 (Immediately preceding production deployment)**。
+> - **Pro 與 Enterprise 方案**：支援選擇**其他符合資格的歷史正式部署**進行回滾。
+> - 目前專案團隊方案待專案負責人確認。
 
 1. 登入 Vercel Dashboard 並進入 `maxupports-projects/lacozzi0210`。
 2. 點選上方頁籤「Deployments」。
-3. 找到上一個已驗證正常的 Production Deployment（例如 Commit `9e99dae`）。
+3. 找到要回復的歷史 Production Deployment（Hobby 方案為緊鄰的前一個 Ready 部署，例如 Commit `9e99dae`；Pro 方案可選擇更早的符合資格部署）。
 4. 點選該項目右側的「...」選單按鈕。
-5. 點選「Instant Rollback」（或「Promote to Production」）。
+5. 點選「Instant Rollback」（注意：此為專屬應急回滾操作，與一般發布的 Promote to Production 不同）。
 6. 在確認對話框中點選「Rollback」。Vercel 會在 2~5 秒內將正式網域 (`lacozzi0210.vercel.app`) 的路由指標直接切換至該不可變產物，無需重新執行 build。
 
 ##### 重要機制：網域鎖定與自動部署暫停 (Automatic Production Domain Assignment Paused)
@@ -62,7 +66,7 @@
 - **設計原因**：避免未修復的後續提交或自動化流程覆蓋緊急回滾狀態。
 - **影響**：此時即使有新的 PR 合併至 `main`，雖然會產生 Production build，但**不會自動上線到正式網域**。
 
-##### 解除鎖定與恢復正常發布必要步驟 (Undo Rollback / Promote)
+##### 解除鎖定與恢復正常發布必要步驟 (Undo Rollback / Promote to Production)
 當緊急狀況解除或已修復問題準備發布新版本時，必須執行下列任一操作以解除鎖定：
 - **途徑 1（撤銷回滾 / Undo Rollback）**：若發現不需要回滾，或欲直接回到回滾前的原版本，點擊 Vercel Dashboard 頂端橫幅中的「Undo Rollback」，即可取消鎖定並恢復原狀態。
 - **途徑 2（發布新版修復 / Promote to Production）**：
@@ -72,7 +76,7 @@
   4. 點選「Promote to Production」（或在 Rollback 橫幅上確認指派新版本）。
   5. 點擊確認後，正式網域即重新綁定至最新部署，並**正式解除 Rollback 鎖定，恢復未來 Git 自動部署行為**。
 
-#### 方法 B：Git Revert 流程（推薦於 Hobby 方案或需完整 Git 審查追蹤時）
+#### 方法 B：Git Revert 流程（推薦需跨多版本回滾或需完整 Git 審查追蹤時）
 1. 本機切換至最新 `main` 分支並更新：`git checkout main && git pull origin main`。
 2. 建立回復分支：`git checkout -b revert/emergency-rollback`。
 3. 產生還原 Commit：`git revert <故障 Commit SHA>`。
@@ -255,21 +259,22 @@
 
 ### 已確認事項 (Confirmed)
 1. **Vercel 管理與自動部署機制**：確認專案名稱 (`lacozzi0210`)、所屬團隊 (`maxupports-projects`)、Production Branch (`main`) 與 GitHub App 自動化觸發規則。
-2. **最新與歷史部署辨識管道**：已驗證可透過 Vercel Dashboard 與 GitHub Deployments API 雙向確認每個 Production Deployment 的 Commit SHA、部署時間與專屬不可變網址。
-3. **無資料庫異動時的回復路徑與限制**：確認 Vercel Instant Rollback 與 Git Revert 的操作流程、權限、方案限制，以及 Instant Rollback 會鎖定正式網域並暫停自動部署之機制與 Undo / Promote 解除步驟。
+2. **最新與歷史部署辨識管道**：**確認正式網域當前指向之版本一律以 Vercel 控制台 Current / Rollback 狀態為唯一權威依據**；GitHub Deployments API 僅能作為歷史部署歷程與 Commit SHA 交叉比對，無法感知線上回滾狀態。
+3. **無資料庫異動時的回復路徑與限制**：確認 Vercel Instant Rollback 在 Hobby 方案支援回滾至緊鄰的前一個正式部署，Pro/Enterprise 方案可選其他歷史正式部署。明確區分 Rollback（回滾至前一版本並進入鎖定狀態）與 Promote to Production（發布新版本或解除鎖定），並文件化 Instant Rollback 暫停自動部署之機制與 Undo / Promote 解除步驟。
 4. **關聯資料庫供應商**：確認底層資料庫為託管於 Supabase 之 PostgreSQL，且透過 Port 6543 連線池與 Port 5432 直接連線運作。
 5. **Storage 儲存桶與特性**：確認儲存桶名稱為 `media`，為公開讀取設定，且目前無自動版本控制或備份機制；資料庫備份不含 Storage 實體檔案。
 6. **環境隔離現況**：確認 CI 環境完全隔離；確認本機與 Preview 目前無法證明與正式環境隔離，明確強化「禁止 Preview 寫入測試」規則。
 7. **seed 程式碼 fallback 移除**：程式碼中之預設管理員帳密 fallback 已於基礎治理中徹底移除。
 
 ### 尚未確認及需要專案負責人處理的事項 (Pending / Unconfirmed)
-1. **Supabase 專案方案等級**：需專案負責人確認目前 Supabase 專案為 Free 還是 Pro 方案（未確認前直接視為無可依賴備份；Free 方案無 UI 還原點與下載功能）。
-2. **PostgreSQL 自動備份與保留週期**：需登入 Supabase 控制台確認實際每日備份時間、保留天數，以及是否啟用了 PITR (Point-in-Time Recovery)。
-3. **最近一次成功備份時間點**：需自 Supabase Dashboard 讀取確切備份時間並記錄於維運日誌。
-4. **正式管理員舊密碼輪替狀態**：程式碼 fallback 雖已移除，但正式環境既有管理員帳號是否曾使用過預設密碼且需要輪替，仍待專案負責人確認與執行。
-5. **資料庫與 Storage 還原權限名單**：需確認團隊中誰具備 Supabase Owner / Admin 權限可在事故時執行資料庫與檔案還原。
-6. **Google Apps Script Webhook 擁有者**：需確認報價表單接收端點的 GAS 專案維護人員與失敗補償機制。
-7. **非正式環境還原演練**：尚未在隔離環境中完成實際備份還原演練。
+1. **Vercel 各環境環境變數實際配置**：本機與 CI 範本已盤點，但 Vercel 控制台中 Production、Preview 與 Development 實際配置的變數名稱與套用範圍，仍待專案負責人登入控制台核對；在此之前「必要環境變數齊全」列為**部分完成 / 待確認**。
+2. **Supabase 專案方案等級**：需專案負責人確認目前 Supabase 專案為 Free 還是 Pro 方案（未確認前直接視為無可依賴備份；Free 方案無 UI 還原點與下載功能）。
+3. **PostgreSQL 自動備份與保留週期**：需登入 Supabase 控制台確認實際每日備份時間、保留天數，以及是否啟用了 PITR (Point-in-Time Recovery)。
+4. **最近一次成功備份時間點**：需自 Supabase Dashboard 讀取確切備份時間並記錄於維運日誌。
+5. **正式管理員舊密碼輪替狀態**：程式碼 fallback 雖已移除，但正式環境既有管理員帳號是否曾使用過預設密碼且需要輪替，仍待專案負責人確認與執行。
+6. **資料庫與 Storage 還原權限名單**：需確認團隊中誰具備 Supabase Owner / Admin 權限可在事故時執行資料庫與檔案還原。
+7. **Google Apps Script Webhook 擁有者**：需確認報價表單接收端點的 GAS 專案維護人員與失敗補償機制。
+8. **非正式環境還原演練**：尚未在隔離環境中完成實際備份還原演練。
 
 ---
 
