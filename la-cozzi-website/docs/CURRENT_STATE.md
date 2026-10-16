@@ -61,9 +61,10 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 ### 資料與發布
 
 - 已有 Prisma schema，但尚未看到可追蹤的 migration 歷史。
-- 正式資料庫備份、還原演練與保留週期尚未文件化。
-- Preview 與 Production 的環境隔離方式尚未文件化。
-- 正式上線後的 smoke test 與回復條件尚未制度化。
+- 正式環境備份與回復準備度已完成盤點與文件化（AG-003 完成，詳見 `docs/RECOVERY.md`）。
+- Vercel 具備秒級 Instant Rollback 與 Git Revert 能力。
+- Preview 與 Production 的環境隔離狀態已完成盤點，確認無法證明隔離，並已確立「禁止 Preview 寫入測試」安全規則。
+- 正式上線後的 smoke test 與回復停止條件已制度化。
 
 ### 安全與營運
 
@@ -89,13 +90,19 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
 | Production build | 通過 | 本機與 CI 均編譯成功 |
 | 自動化測試 | 通過 | Playwright Chromium 核心唯讀 smoke tests（AG-002 完成） |
+| 備份與回復準備度 | 通過 | 完成唯讀盤點並建立專門手冊 `docs/RECOVERY.md`（AG-003 完成） |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
 
 ## 尚待確認事項
 
-- Vercel 專案擁有者、Production Branch 與自動部署規則。
-- 正式 PostgreSQL 的供應商、備份方式與還原權限。
-- Supabase 專案擁有者、Storage 備份與 bucket 權限。
-- GitHub Repository 管理權限與分支保護狀態。
-- 正式管理員密碼是否曾使用 seed fallback。
-- 報價 webhook 的擁有者、監控與失敗補送機制。
+- [x] Vercel 專案名稱 (`lacozzi0210`)、團隊 (`maxupports-projects`)、Production Branch (`main`) 與自動部署規則（已確認）。
+- [x] 正式資料庫供應商（確認為 Supabase PostgreSQL，包含 Port 6543 連線池與 5432 直接連線）。
+- [x] Supabase Storage bucket 名稱 (`media`) 與存取權限 (`public: true`)（已確認）。
+- [x] Preview 與 Production 隔離狀態（確認無法證明隔離，嚴格維持「禁止 Preview 寫入測試」）。
+- [ ] Supabase 專案方案等級（Free 方案僅內部快照無 UI 還原；Pro 方案具每日自動備份）。
+- [ ] Supabase 備份保留天數與 PITR (時間點還原) 是否啟用。
+- [ ] Supabase 最近一次成功備份時間點（需專案負責人至控制台查閱）。
+- [ ] Supabase 與 Vercel 的專案擁有者與災難還原權限名單。
+- [ ] GitHub Repository 管理權限與分支保護狀態。
+- [ ] 正式管理員密碼是否曾使用 seed fallback。
+- [ ] 報價 webhook 的擁有者、監控與失敗補送機制。
