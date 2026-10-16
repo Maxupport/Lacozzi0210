@@ -56,7 +56,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
-- 已於 next.config.ts 明確設定 turbopack.root 與 outputFileTracingRoot 為專案根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
+- 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布
 

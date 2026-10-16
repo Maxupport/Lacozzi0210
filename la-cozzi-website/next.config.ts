@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
-  outputFileTracingRoot: projectRoot,
   serverExternalPackages: ["@notionhq/client", "notion-to-md"],
   images: {
     remotePatterns: [
