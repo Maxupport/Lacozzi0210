@@ -97,7 +97,7 @@
 ### 工作
 
 - [x] 清除 ESLint 錯誤與警告（0 錯誤、0 警告，AG-001 完成）。
-- 解決 workspace root 與 lockfile 警告。
+- [x] 解決 workspace root 與 lockfile 警告（在 next.config.ts 固定 turbopack.root 與 outputFileTracingRoot，AG-005 完成）。
 - [x] 讓 production build 可重現（已驗證通過）。
 - [x] 建立持續整合檢查：型別、Lint、Build（AG-001）與 Smoke Tests（AG-002）。
 - 建立核心單元與整合測試。
