@@ -61,14 +61,15 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 ### 資料與發布
 
 - 已有 Prisma schema，但尚未看到可追蹤的 migration 歷史。
-- 正式環境備份與回復準備度已完成盤點與文件化（AG-003 完成，詳見 `docs/RECOVERY.md`）。
-- Vercel 具備秒級 Instant Rollback 與 Git Revert 能力。
+- 正式環境備份與回復準備度已完成盤點與文件化（AG-003 部分完成 / 待確認，詳見 `docs/RECOVERY.md`）。
+- Vercel 具備 Instant Rollback 與 Git Revert 能力；需注意 Instant Rollback 具方案限制且會鎖定網域暫停自動部署，需手動 Promote 或 Undo 解除鎖定。
+- Supabase 方案未確認前視為無可依賴備份，且資料庫備份不包含 Storage 實體檔案。
 - Preview 與 Production 的環境隔離狀態已完成盤點，確認無法證明隔離，並已確立「禁止 Preview 寫入測試」安全規則。
 - 正式上線後的 smoke test 與回復停止條件已制度化。
 
 ### 安全與營運
 
-- seed 程式存在預設管理員帳號與密碼的 fallback，必須優先移除；若該組密碼曾用於正式環境，必須輪替。
+- seed 程式碼中的預設管理員帳密 fallback 已於基礎治理中移除；但正式環境既有管理員密碼是否曾使用過 fallback 且需要輪替，仍待確認。
 - 公開評論 API 尚未看到 rate limit 或防垃圾訊息措施。
 - 圖片上傳目前主要依賴 MIME type，仍需評估檔案內容驗證與 SVG 風險。
 - 尚未看到集中式錯誤監控、稽核紀錄或服務可用性監測。
@@ -90,19 +91,21 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
 | Production build | 通過 | 本機與 CI 均編譯成功 |
 | 自動化測試 | 通過 | Playwright Chromium 核心唯讀 smoke tests（AG-002 完成） |
-| 備份與回復準備度 | 通過 | 完成唯讀盤點並建立專門手冊 `docs/RECOVERY.md`（AG-003 完成） |
+| 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
 
 ## 尚待確認事項
 
 - [x] Vercel 專案名稱 (`lacozzi0210`)、團隊 (`maxupports-projects`)、Production Branch (`main`) 與自動部署規則（已確認）。
 - [x] 正式資料庫供應商（確認為 Supabase PostgreSQL，包含 Port 6543 連線池與 5432 直接連線）。
-- [x] Supabase Storage bucket 名稱 (`media`) 與存取權限 (`public: true`)（已確認）。
+- [x] Supabase Storage bucket 名稱 (`media`) 與存取權限 (`public: true`)（已確認；資料庫備份不含實體圖檔）。
 - [x] Preview 與 Production 隔離狀態（確認無法證明隔離，嚴格維持「禁止 Preview 寫入測試」）。
-- [ ] Supabase 專案方案等級（Free 方案僅內部快照無 UI 還原；Pro 方案具每日自動備份）。
+- [x] seed 程式碼預設帳密 fallback（已於基礎治理移除）。
+- [ ] 確認正式管理員密碼是否曾使用 seed fallback 並安排輪替。
+- [ ] Supabase 專案方案等級（未確認前視為無可依賴備份；若為 Free 方案無可依賴備份與 UI 還原點；若為 Pro 方案具每日自動備份）。
 - [ ] Supabase 備份保留天數與 PITR (時間點還原) 是否啟用。
 - [ ] Supabase 最近一次成功備份時間點（需專案負責人至控制台查閱）。
 - [ ] Supabase 與 Vercel 的專案擁有者與災難還原權限名單。
 - [ ] GitHub Repository 管理權限與分支保護狀態。
-- [ ] 正式管理員密碼是否曾使用 seed fallback。
 - [ ] 報價 webhook 的擁有者、監控與失敗補送機制。
+- [ ] 非正式環境備份還原演練（尚未在隔離環境中實際驗證）。

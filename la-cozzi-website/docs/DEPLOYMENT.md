@@ -29,14 +29,18 @@
 
 ## 回復方式
 
-詳細操作手冊與停止條件請參閱專門文件：[災害回復與備份準備度手冊 (RECOVERY.md)](./RECOVERY.md)。
+詳細操作手冊、停止條件與備份盤點請參閱專門文件：[災害回復與備份準備度手冊 (RECOVERY.md)](./RECOVERY.md)（目前準備度狀態：**部分完成 / 待確認**）。
 
 ### 無資料庫異動時（Vercel 回復）
-1. 進入 Vercel 控制台 `https://vercel.com/maxupports-projects/lacozzi0210/deployments`。
-2. 找到上一個已驗證正常的 Production Deployment（例如 Commit `9e99dae`）。
-3. 點選「...」功能選單，選擇「Instant Rollback」（或「Promote to Production」）並確認。
-4. 正式流量將在數秒內切換回該歷史部署。
-5. 亦可於本機執行 `git revert <故障SHA>`，經過 CI 與 PR 快速合併回 `main` 重新部署。
+1. **方案限制注意**：一鍵「Instant Rollback」原生為 Vercel Pro/Enterprise 方案功能；若專案為 Hobby 方案，控制台可能不具備該按鈕，建議優先採用 `git revert` 流程或手動指派網域。
+2. 進入 Vercel 控制台 `https://vercel.com/maxupports-projects/lacozzi0210/deployments`。
+3. 找到上一個已驗證正常的 Production Deployment（例如 Commit `9e99dae`）。
+4. 點選「...」功能選單，選擇「Instant Rollback」（或「Promote to Production」）並確認。
+5. 正式流量將在數秒內切換回該歷史部署。
+6. **網域鎖定與自動部署暫停注意**：
+   - 執行 Instant Rollback 後，Vercel 會進入「Rollback Active」狀態，**並自動停用後續 push/merge 到 `main` 時對正式網域的自動指派**，避免未修復的程式覆蓋緊急回滾。
+   - **解除鎖定步驟**：修復完成後，必須點選頂部「Undo Rollback」或進入最新通過驗證的部署點選「Promote to Production」，方能重新指派正式網域並恢復日後自動部署。
+7. 亦可於本機執行 `git revert <故障SHA>`，經過 CI 與 PR 快速合併回 `main` 重新部署（推薦於 Hobby 方案或需完整 Git 審查追蹤時）。
 
 ### 有資料庫異動時（停止條件與順序）
 1. **停止條件**：若新舊 Schema 不相容、migration 中斷或出現未預期的資料損毀，立即停止新的部署。
