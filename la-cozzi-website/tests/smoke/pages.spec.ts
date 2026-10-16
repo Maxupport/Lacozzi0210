@@ -91,7 +91,7 @@ const publicPages: PageTestConfig[] = [
 test.describe('公開頁面可用性 Smoke Tests', () => {
   for (const { path, titleExpected, verifyContent } of publicPages) {
     test(`路徑 ${path} 回傳成功、具有正確標題且具備專屬內容或明確空狀態`, async ({ page }) => {
-      const response = await page.goto(path);
+      const response = await page.goto(path, { waitUntil: 'domcontentloaded' });
       expect(response).not.toBeNull();
       expect(response?.status()).toBe(200);
 
