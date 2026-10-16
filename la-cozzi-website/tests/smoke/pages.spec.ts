@@ -1,3 +1,8 @@
+/**
+ * 核心公開頁面可用性 Smoke Tests
+ * 依據 AG-002 規範與 Codex 審查意見：
+ * 逐頁驗證各頁專屬且穩定的主要內容或明確空狀態，不依賴通用 main 容器。
+ */
 import { test, expect } from '@playwright/test';
 
 interface PageTestConfig {
