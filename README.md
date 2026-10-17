@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# La Cozzi 拉釦子樂團官方網站
 
-## Getting Started
+La Cozzi 拉釦子樂團官方網站與內容管理後台的 Git 儲存庫。本專案包含樂團演出報價入口、品牌介紹、影音作品、合作夥伴、深度專欄、客戶好評，以及供內部管理使用的後台系統。
 
-First, run the development server:
+正式網站：<https://lacozzi0210.vercel.app/>
+
+## 儲存庫結構與應用程式目錄
+
+本儲存庫的核心應用程式與主要程式碼位於 [`la-cozzi-website/`](./la-cozzi-website/) 目錄。
+
+> [!IMPORTANT]
+> 本機相依套件安裝、型別檢查、測試、建置與伺服器啟動指令，**均必須先切換至 `la-cozzi-website/` 目錄後執行**。請勿直接在儲存庫根目錄執行 Next.js 或 npm 應用程式指令。
 
 ```bash
+cd la-cozzi-website
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+完整本機開發環境建置、環境變數配置與指令清單，請參閱 [la-cozzi-website/README.md](./la-cozzi-website/README.md)。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 專案治理與發布規範
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **分支策略**：`main` 分支為正式部署分支，與 Vercel Production Deployment 連動。嚴禁直接修改或推送至 `main`。
+- **提交流程**：所有修改必須建立短期工作分支，經由 Pull Request、GitHub Actions CI 檢查與 Vercel Preview 驗收後合併。
+- **文件導覽**：
+  - [專案文件索引](./la-cozzi-website/docs/README.md)
+  - [開發、驗收與發布流程](./la-cozzi-website/docs/DELIVERY_PROCESS.md)
+  - [部署手冊](./la-cozzi-website/docs/DEPLOYMENT.md)
+  - [維運手冊](./la-cozzi-website/docs/OPERATIONS.md)
+  - [目前狀態基準](./la-cozzi-website/docs/CURRENT_STATE.md)
+  - [災害回復與備份手冊](./la-cozzi-website/docs/RECOVERY.md)
+  - [正式上線檢查表](./la-cozzi-website/docs/RELEASE_CHECKLIST.md)
 
-## Learn More
+## 安全守則
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 嚴禁提交任何 `.env` 檔案、密碼、Token、Cookie、資料庫連線字串或私密金鑰至儲存庫。
+- 若發現疑似密鑰外洩，應立即輪替密鑰與撤銷權限，而非僅從 Git 歷程中刪除文字。

@@ -44,9 +44,9 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 
 ### 專案治理
 
-- README 仍為建立 Next.js 專案時的預設內容。
+- 儲存庫根目錄與網站目錄 README 均已完成，提供清晰的專案入口與開發指引（AG-006）。
 - 缺少架構、環境、部署、備份、回復與事故處理文件。
-- 缺少 Pull Request 與 Issue 範本。
+- Pull Request 與 Issue 範本已移至儲存庫根目錄 .github/ 有效位置（AG-006）。
 - 尚未建立一致的版本號、Release 與 CHANGELOG 流程。
 - 尚未確認 `main` 分支保護與必要檢查。
 
