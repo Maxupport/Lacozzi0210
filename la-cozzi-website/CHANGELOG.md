@@ -15,6 +15,9 @@
 - GitHub Actions CI 工作流程（執行 typecheck、lint、build 與 Playwright Chromium smoke tests，並升級 actions 至 v5）。
 - Playwright Chromium 核心唯讀 Smoke Tests（涵蓋 7 大核心路徑可用性、主要導覽、報價安全驗證、後台登入頁與 SEO 端點）。
 - 災害回復與備份準備度手冊（`docs/RECOVERY.md`，涵蓋 Vercel 回滾步驟、網域鎖定暫停自動部署機制與解除步驟、Hobby 與 Pro/Enterprise 方案回滾資格、資料庫異動相容性決策、PostgreSQL 與 Storage 備份中繼資料盤點、事故處置順序與還原演練前置條件；準備度評估為「部分完成 / 待確認」，AG-003）。
+- 新增通用 AG 任務範本（`docs/tasks/AG-TASK-TEMPLATE.md`，定義 17 項標準章節與授權規則）。
+- 新增 AG 任務文件索引（`docs/tasks/README.md`）。
+- 完成 AG-007：建立可重複使用的通用 AG 任務範本與任務文件索引。新版 `docs/tasks/AG-TASK-TEMPLATE.md` 已取代舊版 `docs/AG_TASK_TEMPLATE.md`，舊版重複範本已移除，通用範本的唯一正式位置為 `docs/tasks/AG-TASK-TEMPLATE.md`。
 
 ### 變更
 
