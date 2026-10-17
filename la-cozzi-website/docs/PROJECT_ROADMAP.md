@@ -68,10 +68,11 @@
 
 ### 工作
 
-- 重寫 README。
+- [x] 重寫 README（儲存庫根目錄入口與 la-cozzi-website/README.md 均已完成，AG-006）。
 - 建立 `.env.example`，只記錄名稱與用途，不放密鑰。
 - 建立架構、環境、資料模型、部署與營運文件。
-- 建立 Pull Request、Issue 與 AG 任務範本。
+- [x] 建立 Pull Request 與 Issue 範本（已定位至儲存庫根目錄 .github/，AG-006）。
+- [ ] 建立可重複使用的 AG 任務範本。
 - 採用 Conventional Commits。
 - `main` 僅保留可部署版本。
 - 每項工作使用短期分支與 Pull Request。
