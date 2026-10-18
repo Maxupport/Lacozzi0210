@@ -144,7 +144,7 @@
 - 將敏感資料存取集中於伺服器端資料存取層。
 - 統一輸入驗證、錯誤處理與授權檢查。
 - 確認 Notion 舊程式的實際依賴；無依賴且已有替代方案後才移除。
-- 建立全站錯誤頁面與合理降級行為。
+- [x] 建立全站錯誤頁面與合理降級行為（error.tsx、global-error.tsx 與 not-found.tsx，AG-009）。
 - 加入公開 API rate limit 與垃圾訊息防護。
 - 改善上傳檔案驗證與 Storage 權限。
 - 評估 Content Security Policy 與其他安全標頭。

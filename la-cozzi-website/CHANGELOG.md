@@ -21,6 +21,11 @@
 - 新增純邏輯單元測試基準（`test:unit` npm 指令，使用 Node.js 內建 `node:test` 與既有 `tsx` 執行 44 項純邏輯單元測試，保護 `utils.ts` 與 `session.ts`，AG-008）。
 - 將單元測試納入 GitHub Actions CI 工作流程（於 Lint 後、Build 前執行，AG-008）。
 - 新增 AG-008 任務規格文件（`docs/tasks/AG-008-UNIT-TEST-BASELINE.md`，AG-008）。
+- 新增全站錯誤降級頁面（`src/app/error.tsx`，使用 Next.js 16.2.1 `unstable_retry()` 提供重試按鈕與回到首頁連結，AG-009）。
+- 新增 Root Layout 錯誤最後防線（`src/app/global-error.tsx`，具備自足式行內樣式與獨立 html/body 結構，AG-009）。
+- 新增官方 404 頁面（`src/app/not-found.tsx`，提供首頁與演出影音頁導覽連結，AG-009）。
+- 新增 404 錯誤頁面 Playwright 冒煙測試（`tests/smoke/error-pages.spec.ts`，驗證 404 狀態碼、介面文字、導覽連結與無水平溢位，AG-009）。
+- 新增 AG-009 任務規格文件（`docs/tasks/AG-009-ERROR-FALLBACKS.md`，AG-009）。
 
 ### 變更
 
@@ -30,6 +35,7 @@
 - 更新維運手冊 (`docs/OPERATIONS.md`)、部署手冊 (`docs/DEPLOYMENT.md`)、環境變數手冊 (`docs/ENVIRONMENT.md`)、現況基準 (`docs/CURRENT_STATE.md`)、風險登記冊 (`docs/RISK_REGISTER.md`) 與 Roadmap (`docs/PROJECT_ROADMAP.md`)，精確區分 Vercel Rollback 與 Promote 操作，明定線上版本以 Vercel Current/Rollback 為準（GitHub API 僅供歷程比對），並將「必要環境變數齊全」調整為部分完成／待確認直到核對 Vercel 線上配置。
 - 固定 Next.js 專案根目錄：於 `next.config.ts` 明確配置 `turbopack.root` 為專案根目錄（不依賴執行時工作目錄），由 Next.js 16 自動同步 Output File Tracing 根目錄，消除多重 lockfile 結構下的 workspace root 警告，確保本機、CI 與 Vercel 的專案範圍判定一致，且未刪除或修改任何 lockfile、套件或前台功能（AG-005）。
 - 修正 GitHub 儲存庫治理檔案位置：將預設 Next.js 根目錄 README 改為專案統一入口與指引，並將 Pull Request 與 Issue 範本移至儲存庫根目錄 `.github/` 有效位置，同步移除 `la-cozzi-website/.github/` 重複範本（AG-006）。
+- 更新 Roadmap 與現況基準：標記全站錯誤頁面與 404 降級行為完成（AG-009），並註記外部集中式錯誤監控或告警尚未導入。
 - 更新 Roadmap 與現況基準：明確標示純邏輯單元測試基準已建立（AG-008），並註記登入 API、資料庫存取層與媒體上傳等整合測試仍待後續任務處理。
 
 ### 安全

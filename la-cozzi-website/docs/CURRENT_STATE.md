@@ -52,9 +52,10 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 
 ### 品質保證
 
+- 已建立全站錯誤頁面與 404 降級處理（AG-009）：包含一般路由錯誤降級頁面（`src/app/error.tsx`，使用 Next.js 16.2.1 `unstable_retry()`）、Root Layout 錯誤最後防線（`src/app/global-error.tsx`，具備自足行內樣式與獨立 html/body 結構）、404 頁面（`src/app/not-found.tsx`，提供首頁與影音頁導覽連結），以及 404 自動化冒煙測試（`tests/smoke/error-pages.spec.ts`）。外部集中式錯誤監控或告警服務尚未導入，待後續任務評估。
 - 已建立純邏輯單元測試基準（`npm run test:unit`，AG-008）：涵蓋 `src/lib/utils.ts`（網址代稱、YouTube 網址/播放清單解析、台北時區日期格式化）與 `src/lib/session.ts`（JWT 簽署與還原驗證、Token 竄改/金鑰/角色防護、Cookie 契約）。
 - 尚未涵蓋的整合測試：包含管理員登入 API（`/api/auth/login`）、登出 API、資料庫存取層、媒體上傳（`/api/upload`）與其他 Server Actions / Route Handlers 整合測試仍待後續任務建立。
-- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`）。
+- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`，共 13 項測試）。
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
@@ -93,7 +94,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
 | Production build | 通過 | 本機與 CI 均編譯成功 |
-| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（AG-002）與純邏輯單元測試（44 項測試全數通過，AG-008 完成；Route Handler、資料層等整合測試待後續補齊） |
+| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（13 項測試全數通過，涵蓋核心公開頁面與 404 頁面，AG-002/AG-009 完成）與純邏輯單元測試（44 項測試全數通過，AG-008 完成；Route Handler、資料層等整合測試待後續補齊） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
