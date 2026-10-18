@@ -19,6 +19,7 @@
 
 ### 2. 任務文件清單
 - [AG-001：清理 ESLint 基準並建立 CI](./AG-001-ESLINT-CI.md)
+- [AG-008：建立純邏輯單元測試基準並納入 CI](./AG-008-UNIT-TEST-BASELINE.md)
 
 ---
 

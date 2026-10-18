@@ -101,7 +101,9 @@
 - [x] 解決 workspace root 與 lockfile 警告（在 next.config.ts 固定 turbopack.root，AG-005 完成）。
 - [x] 讓 production build 可重現（已驗證通過）。
 - [x] 建立持續整合檢查：型別、Lint、Build（AG-001）與 Smoke Tests（AG-002）。
-- 建立核心單元與整合測試。
+- 建立核心單元與整合測試：
+  - [x] 完成純邏輯單元測試基準（`utils.ts` 與 `session.ts`，AG-008）。
+  - [ ] Route Handler、資料層與其他整合測試仍待後續任務處理。
 - [x] 建立 Playwright 核心唯讀流程 smoke tests（AG-002 完成）。
 - [x] 每個 Pull Request 建立 Vercel Preview。
 - 設定必要檢查通過後才能合併。
