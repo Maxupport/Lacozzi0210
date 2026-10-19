@@ -316,7 +316,9 @@ const nunito = Nunito({
 AG-012 候選方案與驗證已完成，等待專案負責人視覺確認。
 
 - **實作分支**：`ag/local-font-visual-validation`
-- **實作內容**：採用官方固定 Commit 之自託管 `Nunito-Variable.ttf`（Commit `604936664fd62c14271209b51f98e7f495dd1a3e`，276,932 位元組，SHA-256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`）與 `NotoSerifTC-Variable.ttf`（Commit `6d17dab13b85129360f9748f057c7f67c5f484d4`，16,851,596 位元組，SHA-256 `0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6`），搭配 SIL OFL 1.1 授權檔與 `next/font/local` 進行自託管，確保標題維持完整 700/900 粗體份量。
-- **建置產物**：字型檔案數量由 221 個降為 2 個，總位元組數為 17,128,528 位元組（約 16.33 MB），`src/` 程式碼完全移除 `next/font/google`，零外部建置與執行期請求。
-- **視覺比對**：完成 7 條路由（桌面 1440x1000、手機 390x844 共 28 張截圖）之並列比對，未觀察到水平溢位或版面破壞，大標題與按鈕黑度已完全恢復。詳細紀錄見 `docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`。
+- **實作內容**：採用自託管官方固定來源之 `Nunito-Variable.ttf`（Commit `604936664fd62c14271209b51f98e7f495dd1a3e`，276,932 位元組，SHA-256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`）與 Noto Serif TC 官方 Variable 之 108 個 WOFF2 unicode-range 分片（版本 `v37` / `@fontsource-variable/noto-serif-tc@5.3.1`，合計 5,723,820 位元組），搭配 SIL OFL 1.1 授權檔。透過 CSS `@font-face` 與 `unicode-range` 宣告按需載入，維持大標題深厚黑度（Black 900），且徹底消除 16.85 MB 完整字型預載問題。
+- **儲存庫與建置產物規模**：儲存庫內自託管字型總計 109 個檔案（1 個 Nunito TTF + 108 個 Noto Serif TC WOFF2 分片），總大小為 6,000,752 位元組（約 5.72 MiB），`src/` 程式碼完全移除 `next/font/google` 外部依賴。
+- **單頁冷快取實際傳輸量**：首頁（`/`）在桌面（1440×1000）與手機（390×844）冷快取下載入時，瀏覽器僅依 Unicode 需求請求 **8 個字型檔案**（1 個 Nunito + 7 個 Noto Serif TC 分片），實際傳輸總量僅 **775,204 位元組（約 757 KB / 0.74 MB）**，遠低於 2 MB 驗收上限。
+- **隔離網路建置說明**：受限於 Next.js Turbopack 在建置期間需經由多程序 IPC 與 Node.js child workers 通訊之架構特性，在 macOS `sandbox-exec` 隔離網路環境下會因 socket 阻斷導致 worker 中斷。因此本機環境尚未完成嚴格之離線 Build 證明，依規範如實記錄，不得宣稱 100% 離線建置已驗證。
+- **視覺比對**：完成 7 條路由（桌面 1440x1000、手機 390x844 共 28 張截圖）之並列比對，未觀察到水平溢位或版面破壞，大標題深黑度完整重現。詳細紀錄見 `docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`。
 - **決策狀態**：本方案僅為候選驗證版，尚未正式採用，亦未獲專案負責人核准，嚴禁自行合併至 `main`。

@@ -61,7 +61,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
 - 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`。
-- 已完成字型穩定化候選版與視覺驗證（AG-012）：建立獨立可回復分支 `ag/local-font-visual-validation`，移除 `next/font/google` 並改用 `next/font/local` 載入官方固定 Commit 之 Nunito Variable TTF 搭配原生繁中系統字型堆疊；正式建置產物字型檔案由 221 個縮減至 1 個，總大小由 10,134,980 位元組降至 276,932 位元組（降幅 97.27%），新增 `tests/smoke/fonts.spec.ts`（smoke tests 增為 14 項），並完成 7 條路由於桌面與手機版（共 28 張）比對截圖。目前狀態：AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，尚未正式採用。
+- 已完成字型穩定化候選版與視覺驗證（AG-012）：建立獨立可回復分支 `ag/local-font-visual-validation`，移除 `next/font/google` 外部下載，改採本機自託管方案。英數字採用官方固定 Commit 之 Nunito Variable TTF（276,932 位元組），繁中襯線採用官方 Noto Serif TC Variable 之 108 個 WOFF2 unicode-range 分片（共 5,723,820 位元組），儲存庫內字型資源總計 6,000,752 位元組（約 5.72 MiB）。透過 `@font-face` 與 `unicode-range` 按需載入，首頁冷快取實際僅請求 8 個字型檔案（1 個 Nunito + 7 個 Noto Serif TC 分片），傳輸總量僅 775,204 位元組（約 757 KB / 0.74 MB），遠低於 2 MB 效能目標，且徹底消除 16.85 MB 完整字型預載問題。Smoke Tests 強化為 14 項（獨立驗證 Nunito 與 Noto Serif TC 本機 2xx 回應與 loaded 狀態）。注意：受限於 Next.js Turbopack IPC worker 架構，本機隔離網路建置尚未完成嚴格證明，不得宣稱 100% 離線建置已驗證。目前狀態：AG-012 候選方案已完成效能與視覺優化，等待專案負責人確認，尚未正式採用。
 - 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布

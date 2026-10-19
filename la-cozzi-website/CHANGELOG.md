@@ -30,7 +30,7 @@
 - 新增 AG-010 任務規格文件（`docs/tasks/AG-010-AUTH-UNIT-TESTS.md`，AG-010）。
 - 新增字型建置穩定化技術調查與規劃報告（`docs/FONT_BUILD_RELIABILITY.md`，詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 字型資源（合計 10,134,980 位元組），客觀比較各方案並制定候選折衷與備用自託管規格，AG-011）。
 - 新增 AG-011 任務規格文件（`docs/tasks/AG-011-FONT-BUILD-RELIABILITY-AUDIT.md`，AG-011）。
-- 新增字型穩定化候選版與視覺驗證（AG-012）：自託管官方固定 Commit 之 Nunito Variable TTF（`src/app/fonts/Nunito-Variable.ttf`）與 Noto Serif TC Variable TTF（`src/app/fonts/NotoSerifTC-Variable.ttf`）及對應授權檔，以 `next/font/local` 取代 `next/font/google`，確保大標題與重要文字維持完整粗體（font-bold 700 / font-black 900）份量；新增字型獨立性、本機 2xx 載入與無溢位 Smoke Test（`tests/smoke/fonts.spec.ts`，Smoke Tests 增為 14 項）；新增 AG-012 任務規格文件（`docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`）；產出 7 條代表性路由（桌面與手機版共 28 張）視覺比對截圖。目前狀態：AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，尚未正式採用。
+- 新增字型穩定化候選版與視覺驗證（AG-012）：自託管官方固定來源之 Nunito Variable TTF（`src/app/fonts/Nunito-Variable.ttf`）與 Noto Serif TC Variable 之 108 個 WOFF2 unicode-range 分片（`src/app/fonts/noto-serif-tc/*.woff2`）及授權檔，以按需載入取代 16.85 MB 完整字型預載，確保大標題與重要文字維持完整粗體（font-bold 700 / font-black 900）份量；首頁冷快取字型傳輸量降至 757 KB（8 個請求，遠低於 2 MB 上限）；新增字型獨立性、本機 2xx 載入與無溢位 Smoke Test（`tests/smoke/fonts.spec.ts`，Smoke Tests 增為 14 項，獨立檢驗兩套字型 loaded 狀態）；新增 AG-012 任務規格文件（`docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`）；產出 7 條代表性路由（桌面與手機版共 28 張）視覺比對截圖。目前狀態：AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，尚未正式採用。
 
 ### 變更
 

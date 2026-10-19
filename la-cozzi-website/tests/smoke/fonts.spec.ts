@@ -1,15 +1,21 @@
 /**
- * 字型載入與獨立性 Smoke Tests
+ * 字型載入、獨立性與效能 Smoke Tests
  * 依據 AG-012 規範與 Codex 審查意見：
  * 1. 驗證頁面不再向 Google Fonts (fonts.googleapis.com / fonts.gstatic.com) 發送請求。
- * 2. 監聽字型 response，必須收到至少一筆 resourceType() === "font" 的本機 /_next/static/media/ 字型回應，且 HTTP 狀態為 2xx。
- * 3. 驗證 document.fonts 中對應自託管字型 status === "loaded"，嚴格排除僅以 HTML class 或 @font-face 寬鬆判定。
- * 4. 確保頁面文字正常顯示且無水平溢位。
+ * 2. 監聽字型 response，分別驗證：
+ *    - Nunito 字型收到本機 /_next/static/media/ 2xx 回應。
+ *    - Noto Serif TC 字型收到本機 /_next/static/media/ 2xx 回應。
+ * 3. 驗證 document.fonts 中：
+ *    - Nunito family 狀態為 "loaded"。
+ *    - Noto Serif TC family 狀態為 "loaded"。
+ *    - 不得以 loadedCount >= 1 寬鬆判定。
+ * 4. 驗證頁面主要標題可見且無 Application error。
+ * 5. 驗證頁面無水平溢位 (scrollWidth <= clientWidth)。
  */
 import { test, expect } from '@playwright/test';
 
 test.describe('字型載入與獨立性 Smoke Tests', () => {
-  test('首頁載入不依賴 Google Fonts，且使用專案自託管字型資源 (2xx 回應、document.fonts 已載入且無水平溢位)', async ({ page }) => {
+  test('首頁載入不依賴 Google Fonts，且分別驗證 Nunito 與 Noto Serif TC 本機 2xx 回應與 loaded 狀態', async ({ page }) => {
     const requestedUrls: string[] = [];
     const fontResponses: Array<{ url: string; status: number; resourceType: string }> = [];
 
@@ -56,16 +62,24 @@ test.describe('字型載入與獨立性 Smoke Tests', () => {
     );
     expect(googleFontRequests).toHaveLength(0);
 
-    // 5. 必須收到至少一筆 resourceType() === "font" 的本機 /_next/static/media/ 字型回應
-    expect(fontResponses.length).toBeGreaterThanOrEqual(1);
+    // 5. 分別驗證 Nunito 與 Noto Serif TC 本機字型回應
+    const nunitoResponses = fontResponses.filter((resp) =>
+      resp.url.toLowerCase().includes('nunito')
+    );
+    const notoSerifResponses = fontResponses.filter((resp) =>
+      resp.url.toLowerCase().includes('noto-serif-tc')
+    );
+
+    expect(nunitoResponses.length).toBeGreaterThanOrEqual(1);
+    expect(notoSerifResponses.length).toBeGreaterThanOrEqual(1);
 
     // 6. 本機字型回應 HTTP 狀態必須全部為 2xx
-    for (const fontResp of fontResponses) {
+    for (const fontResp of [...nunitoResponses, ...notoSerifResponses]) {
       expect(fontResp.status).toBeGreaterThanOrEqual(200);
       expect(fontResp.status).toBeLessThan(300);
     }
 
-    // 7. document.fonts 中必須存在 status === "loaded" 之字型，不可僅依賴 class 或 @font-face 存在
+    // 7. document.fonts 中必須分別驗證 Nunito 與 Noto Serif TC 狀態為 loaded
     const fontLoadingState = await page.evaluate(() => {
       const loadedFonts: Array<{ family: string; status: string }> = [];
       document.fonts.forEach((font) => {
@@ -73,13 +87,22 @@ test.describe('字型載入與獨立性 Smoke Tests', () => {
           loadedFonts.push({ family: font.family, status: font.status });
         }
       });
+
+      const hasNunitoLoaded = loadedFonts.some((f) =>
+        f.family.toLowerCase().includes('nunito')
+      );
+      const hasNotoSerifLoaded = loadedFonts.some((f) =>
+        f.family.toLowerCase().includes('noto serif tc')
+      );
+
       return {
-        hasLoadedFont: loadedFonts.length > 0,
-        loadedCount: loadedFonts.length,
+        hasNunitoLoaded,
+        hasNotoSerifLoaded,
+        loadedFonts,
       };
     });
 
-    expect(fontLoadingState.hasLoadedFont).toBe(true);
-    expect(fontLoadingState.loadedCount).toBeGreaterThanOrEqual(1);
+    expect(fontLoadingState.hasNunitoLoaded).toBe(true);
+    expect(fontLoadingState.hasNotoSerifLoaded).toBe(true);
   });
 });
