@@ -26,6 +26,8 @@
 - 新增官方 404 頁面（`src/app/not-found.tsx`，提供首頁與演出影音頁導覽連結，AG-009）。
 - 新增 404 錯誤頁面 Playwright 冒煙測試（`tests/smoke/error-pages.spec.ts`，驗證 404 狀態碼、介面文字、導覽連結與無水平溢位，AG-009）。
 - 新增 AG-009 任務規格文件（`docs/tasks/AG-009-ERROR-FALLBACKS.md`，AG-009）。
+- 新增登入、密碼與權限純邏輯單元測試（`tests/unit/auth.test.ts`，共 21 項測試，保護帳號正規化、密碼長度與邊界驗證、bcrypt 密碼雜湊與比對、文章編輯權限矩陣及安全常數契約；累計純邏輯單元測試達 65 項，AG-010）。
+- 新增 AG-010 任務規格文件（`docs/tasks/AG-010-AUTH-UNIT-TESTS.md`，AG-010）。
 
 ### 變更
 
@@ -37,6 +39,7 @@
 - 修正 GitHub 儲存庫治理檔案位置：將預設 Next.js 根目錄 README 改為專案統一入口與指引，並將 Pull Request 與 Issue 範本移至儲存庫根目錄 `.github/` 有效位置，同步移除 `la-cozzi-website/.github/` 重複範本（AG-006）。
 - 更新 Roadmap 與現況基準：標記全站錯誤頁面與 404 降級行為完成（AG-009），並註記外部集中式錯誤監控或告警尚未導入。
 - 更新 Roadmap 與現況基準：明確標示純邏輯單元測試基準已建立（AG-008），並註記登入 API、資料庫存取層與媒體上傳等整合測試仍待後續任務處理。
+- 更新 Roadmap 與現況基準：標記登入、密碼與權限純邏輯單元測試已完成（AG-010），單元測試總數更新為 65 項，並維持 Route Handler、資料層與整合測試為待處理狀態。
 
 ### 安全
 

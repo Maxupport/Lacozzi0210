@@ -103,6 +103,7 @@
 - [x] 建立持續整合檢查：型別、Lint、Build（AG-001）與 Smoke Tests（AG-002）。
 - 建立核心單元與整合測試：
   - [x] 完成純邏輯單元測試基準（`utils.ts` 與 `session.ts`，AG-008）。
+  - [x] 完成登入、密碼與權限純邏輯單元測試（`auth.ts`，AG-010）。
   - [ ] Route Handler、資料層與其他整合測試仍待後續任務處理。
 - [x] 建立 Playwright 核心唯讀流程 smoke tests（AG-002 完成）。
 - [x] 每個 Pull Request 建立 Vercel Preview。
