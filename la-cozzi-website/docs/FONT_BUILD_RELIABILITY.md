@@ -316,7 +316,7 @@ const nunito = Nunito({
 AG-012 候選方案與驗證已完成，等待專案負責人視覺確認。
 
 - **實作分支**：`ag/local-font-visual-validation`
-- **實作內容**：採用官方固定 Commit (`604936664fd62c14271209b51f98e7f495dd1a3e`) 之 `Nunito[wght].ttf`（276,932 位元組，SHA-256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`）進行本機字型自託管，搭配系統繁體中文字型堆疊。
-- **建置產物**：字型檔案數量由 221 個降為 1 個，總位元組數由 10,134,980 位元組降為 276,932 位元組（降幅 97.27%），`src/` 程式碼完全移除 `next/font/google`。
-- **視覺比對**：完成 7 條路由（桌面 1440x1000、手機 390x844 共 28 張截圖）之並列比對，未觀察到水平溢位或版面破壞。詳細紀錄見 `docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`。
+- **實作內容**：採用官方固定 Commit 之自託管 `Nunito-Variable.ttf`（Commit `604936664fd62c14271209b51f98e7f495dd1a3e`，276,932 位元組，SHA-256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`）與 `NotoSerifTC-Variable.ttf`（Commit `6d17dab13b85129360f9748f057c7f67c5f484d4`，16,851,596 位元組，SHA-256 `0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6`），搭配 SIL OFL 1.1 授權檔與 `next/font/local` 進行自託管，確保標題維持完整 700/900 粗體份量。
+- **建置產物**：字型檔案數量由 221 個降為 2 個，總位元組數為 17,128,528 位元組（約 16.33 MB），`src/` 程式碼完全移除 `next/font/google`，零外部建置與執行期請求。
+- **視覺比對**：完成 7 條路由（桌面 1440x1000、手機 390x844 共 28 張截圖）之並列比對，未觀察到水平溢位或版面破壞，大標題與按鈕黑度已完全恢復。詳細紀錄見 `docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`。
 - **決策狀態**：本方案僅為候選驗證版，尚未正式採用，亦未獲專案負責人核准，嚴禁自行合併至 `main`。

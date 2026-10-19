@@ -11,6 +11,13 @@ const nunito = localFont({
   variable: "--font-nunito",
 });
 
+const notoSerifTC = localFont({
+  src: "./fonts/NotoSerifTC-Variable.ttf",
+  weight: "200 900",
+  display: "swap",
+  variable: "--font-noto-serif-tc",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lacozzi.com'),
   title: "La Cozzi 拉釦子樂團 | 官方網站",
@@ -36,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-TW" className={`dark scroll-smooth ${nunito.variable}`}>
+    <html lang="zh-TW" className={`dark scroll-smooth ${nunito.variable} ${notoSerifTC.variable}`}>
       <body className={`font-sans bg-stone-950 text-stone-50 selection:bg-amber-500/30 selection:text-amber-100 antialiased min-h-screen overflow-x-hidden relative flex flex-col`}>
         {children}
       </body>

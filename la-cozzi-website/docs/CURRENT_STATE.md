@@ -56,7 +56,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立純邏輯單元測試基準（`npm run test:unit`，AG-008）：涵蓋 `src/lib/utils.ts`（網址代稱、YouTube 網址/播放清單解析、台北時區日期格式化）與 `src/lib/session.ts`（JWT 簽署與還原驗證、Token 竄改/金鑰/角色防護、Cookie 契約）。
 - 已補強登入、密碼與權限純邏輯單元測試（`tests/unit/auth.test.ts`，AG-010）：涵蓋 `src/lib/auth.ts`（帳號正規化、密碼長度與邊界驗證、bcrypt 密碼雜湊與驗證、文章編輯權限矩陣、安全常數鎖定）。
 - 尚未涵蓋的整合測試：包含管理員登入 API（`/api/auth/login`）、登出 API、資料庫存取層、媒體上傳（`/api/upload`）與其他 Server Actions / Route Handlers 整合測試仍待後續任務建立。
-- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`，共 13 項測試）。
+- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`，共 14 項測試，涵蓋核心公開頁面可用性、404 錯誤降級與 AG-012 字型載入獨立性測試）。
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
@@ -97,7 +97,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
 | Production build | 通過 | 本機與 CI 均編譯成功（AG-012 候選方案與驗證已完成，等待專案負責人視覺確認） |
-| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（13 項測試全數通過，涵蓋核心公開頁面與 404 頁面，AG-002/AG-009 完成）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
+| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（14 項測試全數通過，涵蓋核心公開頁面、404 錯誤頁面與 AG-012 字型獨立性測試，AG-002/AG-009/AG-012）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
