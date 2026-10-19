@@ -1,28 +1,15 @@
 import type { Metadata } from "next";
-import { Noto_Sans_TC, Noto_Serif_TC, Nunito } from "next/font/google";
+import localFont from "next/font/local";
+import "./fonts/noto-serif-tc.css";
 import "./globals.css";
 
 export const preferredRegion = 'sin1';
 
-const notoSansTC = Noto_Sans_TC({
-  weight: ['300', '400', '500', '700', '900'],
-  subsets: ["latin"],
-  display: 'swap',
-  variable: '--font-noto-sans-tc',
-});
-
-const notoSerifTC = Noto_Serif_TC({
-  weight: ['400', '700', '900'],
-  subsets: ["latin"],
-  display: 'swap',
-  variable: '--font-noto-serif-tc',
-});
-
-const nunito = Nunito({
-  weight: ['300', '400', '600', '700'],
-  subsets: ["latin"],
-  display: 'swap',
-  variable: '--font-nunito',
+const nunito = localFont({
+  src: "./fonts/Nunito-Variable.ttf",
+  weight: "200 1000",
+  display: "swap",
+  variable: "--font-nunito",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-TW" className={`dark scroll-smooth ${notoSansTC.variable} ${notoSerifTC.variable} ${nunito.variable}`}>
+    <html lang="zh-TW" className={`dark scroll-smooth ${nunito.variable}`}>
       <body className={`font-sans bg-stone-950 text-stone-50 selection:bg-amber-500/30 selection:text-amber-100 antialiased min-h-screen overflow-x-hidden relative flex flex-col`}>
         {children}
       </body>

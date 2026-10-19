@@ -308,3 +308,20 @@ const nunito = Nunito({
 1. **候選方案方向**：是否同意建立獨立 PR，以「方案 2（自託管 Nunito + 原生繁中系統字型）」進行桌面與手機版截圖比較。
 2. **視覺驗收標準**：專案負責人是否接受英數字外觀轉為 Nunito 圓潤特徵，以及不同作業系統（Apple / Windows / Android）中文字型之細微差異。
 3. **任務派發**：本任務（AG-011）僅負責完成客觀技術調查與規格制定，正式實作將待審查核准後另行派發獨立任務執行。
+
+---
+
+## 十五、候選版本驗證進度（AG-012）
+
+AG-012 候選方案與驗證已完成，等待專案負責人視覺確認。
+
+- **實作分支**：`ag/local-font-visual-validation`
+- **實作內容與來源規範**：
+  - **英數字型**：採用自託管 Google Fonts 官方固定來源 Commit 之 `Nunito-Variable.ttf`（Commit `604936664fd62c14271209b51f98e7f495dd1a3e`，276,932 位元組，SHA-256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`）。
+  - **繁中襯線字型**：設計與上游來源為 Google Fonts／Noto CJK；專案實際納入之 108 個 WOFF2 unicode-range 分片（合計 5,723,820 位元組）來自第三方 Fontsource npm 套件固定版本 `@fontsource-variable/noto-serif-tc@5.3.1`（非 Google Fonts 官方直接發布管道）。該套件已由版本號、npm integrity (`sha512-IW3Pydbc5NWA5JNPyk2SST3x85STRtakYXs4HQKU2cv3xB4Y192z1OV2z09XOS9TcZckbPPzagpQ1lgeBjSFNw==`)、dist.shasum (`dc4be8eda130e3275d9608825ad992288e7c39a0`)、tarball 大小（5,886,951 位元組）、tarball SHA-256 (`7b2c9794c6e40567400def64e78a45970e8f90135acf88491378eec306a2e019`) 及解壓縮後之逐檔比對（108 個 WOFF2 檔案逐位元組一致）進行嚴格固定與驗證，授權條款為 SIL OFL 1.1。
+  - **載入機制**：透過 CSS `@font-face` 與 `unicode-range` 宣告按需載入，維持大標題深厚黑度（Black 900），且徹底消除 16.85 MB 完整字型預載問題。
+- **儲存庫與建置產物規模**：儲存庫內自託管字型總計 109 個檔案（1 個 Nunito TTF + 108 個 Noto Serif TC WOFF2 分片），總大小為 6,000,752 位元組（約 5.72 MiB），`src/` 程式碼完全移除 `next/font/google` 外部依賴。
+- **單頁冷快取實際傳輸量**：首頁（`/`）在桌面（1440×1000）與手機（390×844）冷快取下載入時，瀏覽器僅依 Unicode 需求請求 **8 個字型檔案**（1 個 Nunito + 7 個 Noto Serif TC 分片），實際傳輸總量僅 **775,204 位元組（約 757 KB / 0.74 MB）**，遠低於 2 MB 驗收上限。
+- **隔離網路建置說明**：受限於 Next.js Turbopack 在建置期間需經由多程序 IPC 與 Node.js child workers 通訊之架構特性，在 macOS `sandbox-exec` 隔離網路環境下會因 socket 阻斷導致 worker 中斷。因此本機環境尚未完成嚴格之離線 Build 證明，依規範如實記錄，不得宣稱 100% 離線建置已驗證。
+- **視覺比對**：完成 7 條路由（桌面 1440x1000、手機 390x844 共 28 張截圖）之並列比對，未觀察到水平溢位或版面破壞，大標題深黑度完整重現。截圖保留於 `artifacts/ag-012-font-comparison/`（已加入 `.gitignore`，不納入 Git 追蹤），詳細紀錄見 `docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`。
+- **決策狀態**：本方案僅為候選驗證版，尚未正式採用，亦未獲專案負責人核准，嚴禁自行合併至 `main`。

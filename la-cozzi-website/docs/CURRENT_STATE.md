@@ -56,11 +56,12 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立純邏輯單元測試基準（`npm run test:unit`，AG-008）：涵蓋 `src/lib/utils.ts`（網址代稱、YouTube 網址/播放清單解析、台北時區日期格式化）與 `src/lib/session.ts`（JWT 簽署與還原驗證、Token 竄改/金鑰/角色防護、Cookie 契約）。
 - 已補強登入、密碼與權限純邏輯單元測試（`tests/unit/auth.test.ts`，AG-010）：涵蓋 `src/lib/auth.ts`（帳號正規化、密碼長度與邊界驗證、bcrypt 密碼雜湊與驗證、文章編輯權限矩陣、安全常數鎖定）。
 - 尚未涵蓋的整合測試：包含管理員登入 API（`/api/auth/login`）、登出 API、資料庫存取層、媒體上傳（`/api/upload`）與其他 Server Actions / Route Handlers 整合測試仍待後續任務建立。
-- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`，共 13 項測試）。
+- 已建立 Playwright Chromium 核心唯讀 smoke tests（`npm run test:smoke`，共 14 項測試，涵蓋核心公開頁面可用性、404 錯誤降級與 AG-012 字型載入獨立性測試）。
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
-- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`；正式字型自託管程式碼修正仍待專案負責人核准後另行派單實作。
+- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`。
+- 已完成字型穩定化候選版與視覺驗證（AG-012）：建立獨立可回復分支 `ag/local-font-visual-validation`，移除 `next/font/google` 外部下載，改採本機自託管方案。英數字採用 Google Fonts 官方固定 Commit 之 Nunito Variable TTF（276,932 位元組）；繁中襯線之上游設計為 Google Fonts／Noto CJK，專案實際納入之 108 個 WOFF2 unicode-range 分片（共 5,723,820 位元組）來自第三方 Fontsource npm 套件固定版本 `@fontsource-variable/noto-serif-tc@5.3.1`（非 Google Fonts 官方直接發布管道，已由固定版本、npm integrity、shasum、tarball SHA-256 與逐位元組比對驗證），儲存庫內字型資源總計 6,000,752 位元組（約 5.72 MiB）。透過 `@font-face` 與 `unicode-range` 按需載入，首頁冷快取實際僅請求 8 個字型檔案（1 個 Nunito + 7 個 Noto Serif TC 分片），傳輸總量僅 775,204 位元組（約 757 KB / 0.74 MB），遠低於 2 MB 效能目標，且徹底消除 16.85 MB 完整字型預載問題。Smoke Tests 強化為 14 項（獨立驗證 Nunito 與 Noto Serif TC 本機 2xx 回應與 loaded 狀態）。注意：受限於 Next.js Turbopack IPC worker 架構，本機隔離網路建置尚未完成嚴格證明，不得宣稱 100% 離線建置已驗證。目前狀態：AG-012 候選方案已完成效能與視覺優化，等待專案負責人確認，尚未正式採用。
 - 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布
@@ -95,8 +96,8 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | Git 狀態 | 通過 | 盤點時 `main` 與遠端同步 |
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
-| Production build | 通過 | 本機與 CI 均編譯成功（已完成 AG-011 字型建置外部依賴風險調查，正式自託管修正待執行） |
-| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（13 項測試全數通過，涵蓋核心公開頁面與 404 頁面，AG-002/AG-009 完成）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
+| Production build | 通過 | 本機與 CI 均編譯成功（AG-012 候選方案與驗證已完成，等待專案負責人視覺確認） |
+| 自動化測試 | 通過 | Playwright 唯讀 smoke tests（14 項測試全數通過，涵蓋核心公開頁面、404 錯誤頁面與 AG-012 字型獨立性測試，AG-002/AG-009/AG-012）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |
 | 正式站主要頁面 | 可用 | 已進行唯讀頁面檢查 |
