@@ -38,27 +38,39 @@
 
 ---
 
-## 3. 字型官方來源與可驗證憑據
+## 3. 字型來源與可驗證憑據
 
-為確保字型資源與授權具備 100% 可重現性與合法性，字型檔與授權文件嚴格遵循官方發布來源與固定版本，絕不使用第三方未知來源或浮動分支。
+為確保字型資源與授權具備 100% 可重現性與合法性，專案嚴格記錄字型來源、授權與雜湊校驗憑據。文字上清楚區分「官方上游設計來源」與「實際發行取得管道」，絕不混淆：
 
+### A. 英數字型（Nunito Variable）
 - **官方儲存庫**：Google Fonts Official Repository (`https://github.com/google/fonts`)
-- **官方目錄 / 發布版本**：
-  - Nunito: `https://github.com/google/fonts/tree/main/ofl/nunito`（固定 Commit `604936664fd62c14271209b51f98e7f495dd1a3e`）
-  - Noto Serif TC: Google Fonts `v37` 官方發布版本（經 `@fontsource-variable/noto-serif-tc@5.3.1` 打包，完整保留 108 個 WOFF2 unicode-range 分片）
-- **Upstream 來源**：
-  - Nunito: `https://github.com/googlefonts/nunito`
-  - Noto Serif TC: `https://github.com/googlefonts/noto-cjk`
+- **官方目錄 / 發布版本**：`https://github.com/google/fonts/tree/main/ofl/nunito`（固定 Commit `604936664fd62c14271209b51f98e7f495dd1a3e`）
+- **上游來源**：`https://github.com/googlefonts/nunito`
 - **授權條款**：SIL Open Font License 1.1 (`https://openfontlicense.org/`)
+
+### B. 繁中襯線字型（Noto Serif TC Variable WOFF2 分片）
+- **字型設計與上游來源**：Google Fonts / Noto CJK (`https://github.com/googlefonts/noto-cjk`)
+- **專案實際納入之發行來源**：第三方 Fontsource npm 套件固定版本 `@fontsource-variable/noto-serif-tc@5.3.1`
+- **重要治理規範**：**Fontsource 不是 Google Fonts 官方發布管道**。不得使用「108 個 WOFF2 皆直接來自官方固定來源」等不精確描述。
+- **套件鎖定與驗證憑據**：
+  - 套件名稱：`@fontsource-variable/noto-serif-tc`
+  - 版本：`5.3.1`
+  - 授權：`OFL-1.1`
+  - npm tarball：`https://registry.npmjs.org/@fontsource-variable/noto-serif-tc/-/noto-serif-tc-5.3.1.tgz`
+  - npm dist.integrity：`sha512-IW3Pydbc5NWA5JNPyk2SST3x85STRtakYXs4HQKU2cv3xB4Y192z1OV2z09XOS9TcZckbPPzagpQ1lgeBjSFNw==`
+  - npm dist.shasum：`dc4be8eda130e3275d9608825ad992288e7c39a0`
+  - tarball 大小：`5,886,951 bytes`
+  - tarball SHA-256：`7b2c9794c6e40567400def64e78a45970e8f90135acf88491378eec306a2e019`
+- **獨立比對驗證**：Codex 已獨立解開固定版本 tarball，並以 `diff -rq` 比對專案內 `src/app/fonts/noto-serif-tc/` 與 npm tarball 的 `package/files/`，結果沒有任何差異，108 個 WOFF2 檔案皆逐位元組一致。
 
 ### 檔案校驗紀錄
 
 | 檔案名稱 | 專案存放路徑 | 來源 / 版本 | 檔案數量 / 大小 (Bytes) | 授權 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Nunito[wght].ttf** | `src/app/fonts/Nunito-Variable.ttf` | Commit `604936664fd62c14271209b51f98e7f495dd1a3e` | 1 個檔案 / 276,932 bytes | SIL OFL 1.1 |
+| **Nunito[wght].ttf** | `src/app/fonts/Nunito-Variable.ttf` | Google Fonts 官方固定 Commit `604936664fd62c14271209b51f98e7f495dd1a3e` | 1 個檔案 / 276,932 bytes | SIL OFL 1.1 |
 | **OFL.txt (Nunito)** | `src/app/fonts/OFL-Nunito.txt` | Google Fonts | 4,384 bytes (SHA-256 `ee9491ad...`) | SIL OFL 1.1 |
-| **Noto Serif TC WOFF2 Slices** | `src/app/fonts/noto-serif-tc/*.woff2` | Google Fonts v37 / `@fontsource-variable/noto-serif-tc@5.3.1` | 108 個分片 / 5,723,820 bytes | SIL OFL 1.1 |
-| **OFL.txt (Noto Serif TC)** | `src/app/fonts/OFL-NotoSerifTC.txt` | Google Fonts | 4,350 bytes (SHA-256 `5e0da210...`) | SIL OFL 1.1 |
+| **Noto Serif TC WOFF2 Slices** | `src/app/fonts/noto-serif-tc/*.woff2` | 第三方套件 `@fontsource-variable/noto-serif-tc@5.3.1`（上游：Google Fonts / Noto CJK） | 108 個分片 / 5,723,820 bytes | SIL OFL 1.1 |
+| **OFL.txt (Noto Serif TC)** | `src/app/fonts/OFL-NotoSerifTC.txt` | Fontsource / Google Fonts | 4,350 bytes (SHA-256 `5e0da210...`) | SIL OFL 1.1 |
 | **noto-serif-tc.css** | `src/app/fonts/noto-serif-tc.css` | 108 個 `@font-face` unicode-range 規則 | 111,552 bytes | - |
 
 - **Nunito Variable 字型 Metadata 查驗**：
@@ -264,7 +276,7 @@ Tailwind 4 `@theme` 直接採用 `"Noto Serif TC"`：
 
 ### 截圖儲存位置（非 Git 追蹤）
 所有截圖皆儲存於專案 `.gitignore` 明確排除之路徑，未進入 Git 儲存庫：
-`la-cozzi-website/test-results/ag-012-font-comparison/`
+`la-cozzi-website/artifacts/ag-012-font-comparison/`
 
 ### 28 張截圖檔案清單
 - `prod-home-desktop.png` / `candidate-home-desktop.png`
