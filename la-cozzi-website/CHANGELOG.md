@@ -28,7 +28,7 @@
 - 新增 AG-009 任務規格文件（`docs/tasks/AG-009-ERROR-FALLBACKS.md`，AG-009）。
 - 新增登入、密碼與權限純邏輯單元測試（`tests/unit/auth.test.ts`，共 21 項測試，保護帳號正規化、密碼長度與邊界驗證、bcrypt 密碼雜湊與比對、文章編輯權限矩陣及安全常數契約；累計純邏輯單元測試達 65 項，AG-010）。
 - 新增 AG-010 任務規格文件（`docs/tasks/AG-010-AUTH-UNIT-TESTS.md`，AG-010）。
-- 新增字型建置穩定化技術調查與規劃報告（`docs/FONT_BUILD_RELIABILITY.md`，詳實盤點 `next/font/google` 於建置時依賴下載 884 個 CSS `@font-face` 規則與 221 個 WOFF2 切片建置產物之外部依賴風險，客觀比較各方案並制定候選折衷與備用自託管規格，AG-011）。
+- 新增字型建置穩定化技術調查與規劃報告（`docs/FONT_BUILD_RELIABILITY.md`，詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 字型資源（合計 10,134,980 位元組），客觀比較各方案並制定候選折衷與備用自託管規格，AG-011）。
 - 新增 AG-011 任務規格文件（`docs/tasks/AG-011-FONT-BUILD-RELIABILITY-AUDIT.md`，AG-011）。
 
 ### 變更

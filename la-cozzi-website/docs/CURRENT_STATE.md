@@ -60,7 +60,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
-- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 於建置時依賴下載 884 個 CSS `@font-face` 規則與 221 個 WOFF2 切片建置產物（10,134,980 位元組，約 10.13 MB）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`；正式字型自託管程式碼修正仍待專案負責人核准後另行派單實作。
+- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`；正式字型自託管程式碼修正仍待專案負責人核准後另行派單實作。
 - 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布

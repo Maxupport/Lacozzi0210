@@ -22,7 +22,7 @@
 - **WOFF2 總位元組數**：
   - 221 個 `.woff2` 檔案總計為 **10,134,980 位元組**（約 10.13 MB 十進位，或 9.66 MiB 二進位）。
 - **外部網路連線特性**：
-  - 未經實際網路封包監控（Network Trace），無法確切斷定建置過程中發出的精確 HTTP 請求次數（可能因 HTTP/2 多工複用、連線池復用或共用資源而與切片數不一致）。
+  - 本次未擷取建置期間的 Network Trace，因此無法由 CSS 規則數或建置產物數直接推定實際 HTTP 交易次數；實際次數可能受到 Next.js／Turbopack 內部的資源去重、快取、重試與下載實作影響。HTTP/2 多工複用會影響連線使用方式，但不應作為請求數無法確認的主要理由。
   - 但可以確定的是：每一次全新建置皆必須連線至 `fonts.googleapis.com` 取得龐大樣式表，並由 Turbopack 解析後向 `fonts.gstatic.com` 下載約 10.13 MB 的字型切片資源。
 
 一旦 GitHub Actions 雲端 Runner、本機網路或 Vercel 建置節點遭遇外部網路抖動、連線逾時、CDN 節流或封包傳輸中斷，Turbopack 內部之字型解析器即可能拋出 `module-not-found`，導致整個正式發布或 CI Pipeline 隨機中斷失敗。
