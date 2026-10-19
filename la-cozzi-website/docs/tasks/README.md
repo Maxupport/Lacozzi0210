@@ -23,6 +23,7 @@
 - [AG-009：建立全站錯誤降級與 404 頁面](./AG-009-ERROR-FALLBACKS.md)
 - [AG-010：補強登入、密碼與權限純邏輯單元測試](./AG-010-AUTH-UNIT-TESTS.md)
 - [AG-011：調查並規劃字型建置穩定化](./AG-011-FONT-BUILD-RELIABILITY-AUDIT.md)
+- [AG-012：建立可回復的字型穩定化候選版與視覺驗證](./AG-012-LOCAL-FONT-VISUAL-VALIDATION.md)
 
 ---
 

@@ -30,6 +30,7 @@
 - 新增 AG-010 任務規格文件（`docs/tasks/AG-010-AUTH-UNIT-TESTS.md`，AG-010）。
 - 新增字型建置穩定化技術調查與規劃報告（`docs/FONT_BUILD_RELIABILITY.md`，詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 字型資源（合計 10,134,980 位元組），客觀比較各方案並制定候選折衷與備用自託管規格，AG-011）。
 - 新增 AG-011 任務規格文件（`docs/tasks/AG-011-FONT-BUILD-RELIABILITY-AUDIT.md`，AG-011）。
+- 新增字型穩定化候選版與視覺驗證（AG-012）：自託管官方固定 Commit 之 Nunito Variable TTF（`src/app/fonts/Nunito-Variable.ttf`）與授權檔（`src/app/fonts/OFL-Nunito.txt`），以 `next/font/local` 取代 `next/font/google`，搭配原生繁中系統字型堆疊；新增字型獨立性與無溢位 Smoke Test（`tests/smoke/fonts.spec.ts`，Smoke Tests 增為 14 項）；新增 AG-012 任務規格文件（`docs/tasks/AG-012-LOCAL-FONT-VISUAL-VALIDATION.md`）；產出 7 條代表性路由（桌面與手機版共 28 張）視覺比對截圖。目前狀態：AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，尚未正式採用。
 
 ### 變更
 
@@ -43,6 +44,7 @@
 - 更新 Roadmap 與現況基準：明確標示純邏輯單元測試基準已建立（AG-008），並註記登入 API、資料庫存取層與媒體上傳等整合測試仍待後續任務處理。
 - 更新 Roadmap 與現況基準：標記登入、密碼與權限純邏輯單元測試已完成（AG-010），單元測試總數更新為 65 項，並維持 Route Handler、資料層與整合測試為待處理狀態。
 - 更新 Roadmap、現況基準與風險清單：標記字型建置穩定化技術調查已完成（AG-011），並註記正式字型自託管程式碼修正仍待專案負責人核准後實作。
+- 更新 Roadmap、現況基準與任務目錄：標記 AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，強調未經核准前不得正式採用。
 
 ### 安全
 

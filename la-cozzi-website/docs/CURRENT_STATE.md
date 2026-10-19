@@ -60,7 +60,8 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
-- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`；正式字型自託管程式碼修正仍待專案負責人核准後另行派單實作。
+- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 產生的樣式表包含 884 個 CSS `@font-face` 規則，正式建置產生 221 個不重複的 WOFF2 資源（總大小為 10,134,980 位元組，未經 Network Trace 不能將上述數字直接視為 HTTP 請求數）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成各可行性方案比較並提出候選折衷方案（自託管 Nunito + 原生繁中系統字型堆疊，需截圖驗證）與備用候選方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`。
+- 已完成字型穩定化候選版與視覺驗證（AG-012）：建立獨立可回復分支 `ag/local-font-visual-validation`，移除 `next/font/google` 並改用 `next/font/local` 載入官方固定 Commit 之 Nunito Variable TTF 搭配原生繁中系統字型堆疊；正式建置產物字型檔案由 221 個縮減至 1 個，總大小由 10,134,980 位元組降至 276,932 位元組（降幅 97.27%），新增 `tests/smoke/fonts.spec.ts`（smoke tests 增為 14 項），並完成 7 條路由於桌面與手機版（共 28 張）比對截圖。目前狀態：AG-012 候選方案與驗證已完成，等待專案負責人視覺確認，尚未正式採用。
 - 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布
@@ -95,7 +96,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | Git 狀態 | 通過 | 盤點時 `main` 與遠端同步 |
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
-| Production build | 通過 | 本機與 CI 均編譯成功（已完成 AG-011 字型建置外部依賴風險調查，正式自託管修正待執行） |
+| Production build | 通過 | 本機與 CI 均編譯成功（AG-012 候選方案與驗證已完成，等待專案負責人視覺確認） |
 | 自動化測試 | 通過 | Playwright 唯讀 smoke tests（13 項測試全數通過，涵蓋核心公開頁面與 404 頁面，AG-002/AG-009 完成）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |
