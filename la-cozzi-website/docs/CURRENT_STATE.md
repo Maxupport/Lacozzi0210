@@ -60,6 +60,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 - 已建立 GitHub Actions 持續整合流程 (CI)，涵蓋 typecheck、lint、unit tests、build 與 smoke tests。
 - ESLint 已完成清理（0 錯誤、0 警告，AG-001）。
 - production build 已驗證可正常建置通過。
+- 已完成字型建置穩定化技術調查與規劃（AG-011）：詳實盤點 `next/font/google` 於建置時下載 884 個 CJK 切片檔案（~10 MB）之外部網路依賴風險與 CI 失敗案例（Run ID `39113850612`），完成六大方案比較並提出首選方案（自託管 38 KB Nunito WOFF2 + 原生繁中系統字型堆疊）與備用方案（精簡字重子集化自託管），產出完整規格報告 `docs/FONT_BUILD_RELIABILITY.md`；正式字型自託管程式碼修正仍待專案負責人核准後另行派單實作。
 - 已於 next.config.ts 明確設定 turbopack.root 為專案根目錄，由 Next.js 16 自動對齊追蹤根目錄，消除 workspace root 與多重 lockfile 警告（AG-005 完成）。
 
 ### 資料與發布
@@ -94,7 +95,7 @@ La Cozzi 官網目前已上線，主要功能足以支援日常使用。這次�
 | Git 狀態 | 通過 | 盤點時 `main` 與遠端同步 |
 | TypeScript | 通過 | `npx tsc --noEmit` 無錯誤 |
 | ESLint | 通過 | 0 錯誤、0 警告（AG-001 完成） |
-| Production build | 通過 | 本機與 CI 均編譯成功 |
+| Production build | 通過 | 本機與 CI 均編譯成功（已完成 AG-011 字型建置外部依賴風險調查，正式自託管修正待執行） |
 | 自動化測試 | 通過 | Playwright 唯讀 smoke tests（13 項測試全數通過，涵蓋核心公開頁面與 404 頁面，AG-002/AG-009 完成）與純邏輯單元測試（65 項測試全數通過，涵蓋 `utils.ts`、`session.ts` 與 `auth.ts`，AG-008/AG-010 完成；Route Handler、資料層等整合測試待後續補齊） |
 | 備份與回復準備度 | 部分完成 / 待確認 | 已完成流程盤點並建立專門手冊 `docs/RECOVERY.md`；但 Supabase 方案未確認前視為無可依賴備份，且尚未進行非正式環境還原演練 |
 | 環境變數與隔離準備度 | 部分完成 / 待確認 | 本機範本已齊全，確立「禁止 Preview 寫入」；直到實際核對 Vercel 各環境變數名稱與套用範圍前維持待確認 |

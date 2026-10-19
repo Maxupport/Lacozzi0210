@@ -100,6 +100,9 @@
 - [x] 清除 ESLint 錯誤與警告（0 錯誤、0 警告，AG-001 完成）。
 - [x] 解決 workspace root 與 lockfile 警告（在 next.config.ts 固定 turbopack.root，AG-005 完成）。
 - [x] 讓 production build 可重現（已驗證通過）。
+- 解決建置時外部字型依賴風險：
+  - [x] 完成字型建置穩定化技術調查與規劃（AG-011，詳見 `docs/FONT_BUILD_RELIABILITY.md`）。
+  - [ ] 執行字型自託管或系統字型堆疊正式修正（待排定實作）。
 - [x] 建立持續整合檢查：型別、Lint、Build（AG-001）與 Smoke Tests（AG-002）。
 - 建立核心單元與整合測試：
   - [x] 完成純邏輯單元測試基準（`utils.ts` 與 `session.ts`，AG-008）。
