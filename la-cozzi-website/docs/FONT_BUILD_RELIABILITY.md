@@ -1,23 +1,31 @@
 # 字型建置穩定化技術調查與規劃報告
 
-本文件記錄 La Cozzi 官方網站正式建置（Next.js Production Build）依賴 Google Fonts 即時下載之技術風險調查、官方來源查證、方案比較與後續實作規格規劃。
+本文件記錄 La Cozzi 官方網站正式建置（Next.js Production Build）依賴 Google Fonts 即時下載之技術風險調查、官方來源查證、方案成本比較與後續實作驗收規格規劃。
 
 ---
 
 ## 一、問題摘要
 
-目前專案於根層版面（`src/app/layout.tsx`）使用 Next.js 內建的 `next/font/google` 載入三套 Google Fonts（`Noto Sans TC`、`Noto Serif TC`、`Nunito`），並設定 12 個不同字重。
+目前專案於根層版面（`src/app/layout.tsx`）使用 Next.js 內建的 `next/font/google` 宣告載入三套 Google Fonts（`Noto Sans TC`、`Noto Serif TC`、`Nunito`），並設定 12 個不同字重（Noto Sans TC: 5 個、Noto Serif TC: 3 個、Nunito: 4 個）。
 
 雖然 Next.js 的設計是在建置時期（Build Time）自託管（Self-host）字型，但此機制要求 **每一次無快取的正式建置必須從外部 Google Fonts API 與 gstatic CDN 即時下載字型與樣式**。
 
-經實際實測，繁體中文字型（CJK）因字符數量龐大，Google Fonts API 採用了動態 Unicode-Range 切片技術：
-- `Noto Sans TC`（5 個字重）：Google Fonts 回傳達 **540 個切片檔案**（CSS 長達 624 KB）。
-- `Noto Serif TC`（3 個字重）：回傳達 **324 個切片檔案**（CSS 長達 375 KB）。
-- `Nunito`（4 個字重）：回傳 **20 個切片檔案**。
+經實際檢查正式建置產物與樣式規則，繁體中文字型（CJK）因字符數量龐大，Google Fonts API 採用了動態 Unicode-Range 切片技術：
+- **CSS `@font-face` 規則數**：
+  - `Noto Sans TC`（5 個字重）：CSS 包含 **540 個 `@font-face` 規則**。
+  - `Noto Serif TC`（3 個字重）：CSS 包含 **324 個 `@font-face` 規則**。
+  - `Nunito`（4 個字重）：CSS 包含 **20 個 `@font-face` 規則**。
+  - **合計共 884 個 `@font-face` 規則**。
+- **實際不重複 WOFF2 建置產物數**：
+  - 在 `.next/static/media` 中，建置產物實際生成 **221 個不重複的 `.woff2` 字型切片檔案**（另有 1 個 `favicon.ico`，共 222 個檔案）。
+  - 這代表多個字重或 Unicode-Range 規則在底層會共用相同的 Variable WOFF2 資源。**884 是 CSS 規則數，不等於 884 個不同字型檔**。
+- **WOFF2 總位元組數**：
+  - 221 個 `.woff2` 檔案總計為 **10,134,980 位元組**（約 10.13 MB 十進位，或 9.66 MiB 二進位）。
+- **外部網路連線特性**：
+  - 未經實際網路封包監控（Network Trace），無法確切斷定建置過程中發出的精確 HTTP 請求次數（可能因 HTTP/2 多工複用、連線池復用或共用資源而與切片數不一致）。
+  - 但可以確定的是：每一次全新建置皆必須連線至 `fonts.googleapis.com` 取得龐大樣式表，並由 Turbopack 解析後向 `fonts.gstatic.com` 下載約 10.13 MB 的字型切片資源。
 
-總計在每一次全新建置中，Next.js（特別是 16.2.1 Turbopack 原生引擎）必須對 Google 伺服器發送高達 **884 次** 網路切片請求並下載累積約 **9.69 MB** 的 WOFF2 檔案。
-
-一旦 GitHub Actions 雲端 Runner、本機網路或 Vercel 建置節點遭遇短暫網路抖動、連線逾時、CDN 節流或 HTTP 封包中斷，Turbopack 內部之字型解析器即會崩潰並拋出 `module-not-found`，導致整個正式發布或 CI Pipeline 立即中斷失敗。
+一旦 GitHub Actions 雲端 Runner、本機網路或 Vercel 建置節點遭遇外部網路抖動、連線逾時、CDN 節流或封包傳輸中斷，Turbopack 內部之字型解析器即可能拋出 `module-not-found`，導致整個正式發布或 CI Pipeline 隨機中斷失敗。
 
 ---
 
@@ -26,7 +34,7 @@
 在 PR #12 合併至 `main` 後，GitHub Actions 於 Build 階段發生非確定性崩潰：
 
 - **GitHub Actions Run**：
-  `https://github.com/Maxupport/Lacozzi0210/actions/runs/39113850612`
+  [Run 39113850612](https://github.com/Maxupport/Lacozzi0210/actions/runs/39113850612)
 - **失敗 Commit**：
   `163d2513514245962c0a57a4175eaf6b8f1b8fb4`
 - **崩潰階段**：`npm run build`（Next.js 16.2.1 Turbopack）
@@ -55,17 +63,14 @@
 
 **證據分析**：
 1. 錯誤直接發生於 Turbopack 原生模組 `<NextFontGoogleFontFileReplacer>` 解析 `noto_sans_tc` 生成之 4,300+ 行 CSS 樣式表。
-2. 同一 Commit 後續在 PR #13、本機網路與 Vercel 均曾順利建置，證實程式碼無邏輯錯誤，問題本質為 **「建置時外部依賴網路即時抓取大量 CJK 切片所引發之非確定性隨機失敗」**。
+2. 同一 Commit 後續在 PR #13、本機環境與 Vercel 均曾順利建置，證實程式碼並無語法或邏輯錯誤，問題本質為 **「建置階段依賴外部網路即時抓取大量 CJK 字型切片所引發之非確定性隨機失敗」**。
 
 ---
 
-## 三、現行字型架構
+## 三、現行字型架構與視覺順序分析
 
-### 1. 載入位置
-全站僅於一個檔案載入字型：
-- `src/app/layout.tsx`
-
-### 2. 載入方式與宣告
+### 1. 載入位置與宣告
+全站僅於一個檔案載入字型：`src/app/layout.tsx`：
 ```typescript
 import { Noto_Sans_TC, Noto_Serif_TC, Nunito } from "next/font/google";
 
@@ -91,7 +96,7 @@ const nunito = Nunito({
 });
 ```
 
-### 3. CSS 變數與字型堆疊（`src/app/globals.css`）
+### 2. 現行字型優先順序（`src/app/globals.css`）
 ```css
 @theme {
   --font-sans: var(--font-noto-sans-tc), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -100,13 +105,19 @@ const nunito = Nunito({
 }
 ```
 
-### 4. 特性盤點
-- **套用範圍**：RootLayout 將變數注入 `<html>`，全站所有前台頁面（首頁、品牌、影音、夥伴、部落格、評論）、錯誤頁面（`error.tsx`, `not-found.tsx`）及後台路由全數套用。
-- **預先載入（Preload）**：現行保留預設 `preload: true`，會在 SSR HTML `<head>` 注入 `<link rel="preload">`。
-- **外部連線**：
-  - **建置時期**：必須連線 `fonts.googleapis.com` 與 `fonts.gstatic.com`。
-  - **訪客端執行時期**：若建置成功，檔案已複製至 `.next/static/media`，訪客瀏覽器不會連線 Google，由站點自身的 CDN / 伺服器自託管。
-- **建置失敗後果**：`next build` 直接拋出錯誤並中斷，阻止整個部署流程。
+### 3. 重要視覺事實釐清
+根據 CSS 字型匹配規則，瀏覽器在解析文字時會依字型堆疊宣告由前至後逐字元匹配：
+1. **`font-sans` 中英數字現況**：
+   - 目前 `--font-sans` 的第一順位是 `var(--font-noto-sans-tc)`，第二順位才是 `var(--font-nunito)`。
+   - 由於 Google Fonts 的 `Noto Sans TC` 本身即收錄完整的拉丁字母（A–Z, a–z）、阿拉伯數字與基本標點符號，因此 **在現行網站中，絕大多數無襯線英數字實際上是由 Noto Sans TC 渲染，而非 Nunito**。
+   - 宣稱「Nunito 是目前全站主要英數字型」並不符合現行 CSS 的實際匹配順序。
+2. **`font-serif` 與 `font-marker` 現況**：
+   - `--font-serif` 完全由 `Noto Serif TC` 主導。
+   - `--font-marker` 亦指向 `var(--font-noto-serif-tc), cursive`。
+3. **字型變更的視覺衝擊**：
+   - 若候選方案將 `Nunito` 移至 `--font-sans` 第一順位，**英文字母與數字的外觀將產生明顯改變**（由 Noto Sans 的剛正造型轉變為 Nunito 的圓潤端點造型）。
+   - 若中文改用作業系統原生字型，不同作業系統（Apple PingFang TC、Windows 微軟正黑體、Linux 系統字型）的字重分佈、字面率、行高與字寬皆有差異，**不可視為無縫或完全一致的切換**。
+   - 若將 `--font-marker` 改為 Nunito，將失去原本 Noto Serif TC 的襯線筆觸，視覺差異顯著。
 
 ---
 
@@ -117,8 +128,8 @@ const nunito = Nunito({
 - `node_modules/next/dist/docs/01-app/03-api-reference/02-components/font.md`
 
 重點技術規範確認：
-1. **內建自託管（Built-in self-hosting）**：`next/font` 設計初衷即為去除外部執行時網路請求，提升隱私（GDPR 合規）並消除累積版面位移（CLS）。
-2. **`next/font/local` 支援**：Next.js 官方第一優先推薦在無法依賴外部網路或自帶字型時，使用 `next/font/local`：
+1. **內建自託管（Built-in self-hosting）**：`next/font` 會在建置時將字型靜態化，使得訪客瀏覽器不會直接發送連線至 Google 伺服器，能避免版面位移（CLS）並兼顧訪客端連線效能。
+2. **`next/font/local` 自託管支援**：Next.js 官方推薦使用 `next/font/local` 載入本機字型檔案，以完全移除對外部網路的建置依賴：
    ```typescript
    import localFont from 'next/font/local'
    const myFont = localFont({
@@ -127,175 +138,173 @@ const nunito = Nunito({
      variable: '--my-font',
    })
    ```
-3. **路徑解析**：`localFont` 的 `src` 支援相對於呼叫檔案之相對路徑（例如 `./fonts/my-font.woff2`），且完全在本地檔案系統解析，**不發出任何網路請求**。
-4. **CSS Variable 相容**：`next/font/local` 與 `next/font/google` 具備完全相同的 `variable` 與 `display` 介面，能無痛維持既有 CSS 變數名稱與 Tailwind `@theme` 設定。
+3. **路徑解析機制**：`localFont` 的 `src` 是相對於呼叫檔案進行本地解析，完全由本機檔案系統讀取，不產生任何網路請求。
+4. **CSS Variable 相容性**：`next/font/local` 支援與 `next/font/google` 相同的 `variable` 與 `display` 選項，能對齊既有 Tailwind `@theme` 設定。
 
 ---
 
 ## 五、官方字型與授權盤點
 
-所有字型皆查證自官方 Google Fonts 及 upstream 儲存庫，均使用 **SIL Open Font License 1.1 (OFL-1.1)**，允許免費自託管、修改、商業使用與網站部署（唯一限制為不得單獨販售字型檔且需保留版權宣告）。
+所有字型皆查證自官方 Google Fonts 及 upstream 儲存庫，均採用 **SIL Open Font License 1.1 (OFL-1.1)**。該授權允許免費自託管、修改、商業使用與網站部署（限制為不得單獨販售字型檔且需保留版權與授權宣告）。
 
-| 字型名稱 | 官方來源 | 授權類型 | Variable 支援 | 格式 | 官方檔案大小 | 官方 SHA-256 / 識別碼 |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Noto Sans TC** | `google/fonts/ofl/notosanstc` (notofonts/noto-cjk) | OFL-1.1 | 支援 (`wght`) | TTF / WOFF2 | TTF: **11,941,968 bytes** (~11.9 MB) | `864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f` |
-| **Noto Serif TC** | `google/fonts/ofl/notoseriftc` (notofonts/noto-cjk) | OFL-1.1 | 支援 (`wght`) | TTF / WOFF2 | TTF: **16,851,596 bytes** (~16.8 MB) | `0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6` |
-| **Nunito** | `googlefonts/nunito` (Vernon Adams) | OFL-1.1 | 支援 (`wght`) | TTF / WOFF2 | TTF: **276,932 bytes** (~276 KB)<br>WOFF2: **39,152 bytes** (~38 KB) | `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207` |
+### 官方來源與精確查證資訊
+
+1. **SIL Open Font License 1.1 官方授權**：
+   - 官方網站：[https://openfontlicense.org/](https://openfontlicense.org/) 或 [https://scripts.sil.org/OFL](https://scripts.sil.org/OFL)
+2. **Noto Sans TC**：
+   - Google Fonts 目錄：[https://fonts.google.com/specimen/Noto+Sans+TC](https://fonts.google.com/specimen/Noto+Sans+TC)
+   - 官方 Git 儲存庫：[google/fonts: ofl/notosanstc](https://github.com/google/fonts/tree/main/ofl/notosanstc)（Upstream: [notofonts/noto-cjk](https://github.com/notofonts/noto-cjk)）
+   - 精確查證檔案：`NotoSansTC[wght].ttf`
+   - 下載 URL：`https://raw.githubusercontent.com/google/fonts/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf`
+   - 檔案大小：**11,941,968 位元組**（約 11.9 MB）
+   - SHA-256：`864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f`
+3. **Noto Serif TC**：
+   - Google Fonts 目錄：[https://fonts.google.com/specimen/Noto+Serif+TC](https://fonts.google.com/specimen/Noto+Serif+TC)
+   - 官方 Git 儲存庫：[google/fonts: ofl/notoseriftc](https://github.com/google/fonts/tree/main/ofl/notoseriftc)（Upstream: [notofonts/noto-cjk](https://github.com/notofonts/noto-cjk)）
+   - 精確查證檔案：`NotoSerifTC[wght].ttf`
+   - 下載 URL：`https://raw.githubusercontent.com/google/fonts/main/ofl/notoseriftc/NotoSerifTC%5Bwght%5D.ttf`
+   - 檔案大小：**16,851,596 位元組**（約 16.8 MB）
+   - SHA-256：`0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6`
+4. **Nunito**：
+   - Google Fonts 目錄：[https://fonts.google.com/specimen/Nunito](https://fonts.google.com/specimen/Nunito)
+   - 官方 Git 儲存庫：[google/fonts: ofl/nunito](https://github.com/google/fonts/tree/main/ofl/nunito)（Upstream: [googlefonts/nunito](https://github.com/googlefonts/nunito)）
+   - 精確查證檔案：`Nunito[wght].ttf`
+   - 下載 URL：`https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito%5Bwght%5D.ttf`
+   - 檔案大小：**276,932 位元組**（約 276 KB）
+   - SHA-256：`bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`
+   - *註：本次調查實測之 Nunito Latin Variable WOFF2 切片大小為 39,152 位元組，此數值為 Google Fonts CDN 回傳切片之實測值，並非官方儲存庫中單一固定的可重現發布資產。後續若需於本機自託管，應以官方 TTF 來源透過標準可重現工具轉換，或採用具備固定版本與校驗碼之上游發布檔。*
 
 ---
 
 ## 六、檔案大小與傳輸成本分析
 
-### 1. 繁體中文字型的體積陷阱
-繁體中文（CJK）字型包含台灣教育部常用國字、次常用字以及 Big5 收錄字，字符總數通常高達 13,000 至數萬字。
-- 若直接將未子集化的完整 Variable TTF 放入專案自託管：
-  - 兩套 CJK 字型合計高達 **28.7 MB**。
-  - 將使 Git 儲存庫膨脹近 30 MB。
-  - 若使用者造訪首頁時必須下載完整字型檔，在行動裝置上將造成毀滅性的 LCP 延遲與頻寬消耗。
+### 1. 繁體中文字型自託管的體積負擔
+繁體中文（CJK）字型收錄超過萬字，若在未經子集化（Subsetting）的情況下直接自託管完整 Variable TTF 檔案：
+- `Noto Sans TC` (~11.9 MB) + `Noto Serif TC` (~16.8 MB) 合計高達 **28.7 MB**。
+- 這將直接增加 Git 儲存庫近 30 MB，並使未開啟切片的瀏覽器必須下載超過 10~28 MB 的字型資料，對行動網路使用者的載入時間（LCP）與流量消耗造成負面影響。
 
-### 2. 現行 Google Fonts 動態切片的兩難
-- Google Fonts 透過切成 884 個切片來解決使用者傳輸量問題（使用者僅下載當頁用到的 5~10 個切片，約 200~400 KB）。
-- 但這個設計把負擔全部推移給了 **建置時期**：Next.js 在 Build 時期被迫下載所有 884 個切片（累積近 10 MB），導致 CI 建置隨機中斷。
-
-### 3. 西文字型（Nunito）的極佳優勢
-- `Nunito` 僅涵蓋拉丁字母與符號，其官方 Variable WOFF2 檔案僅 **38 KB**。
-- 將 `Nunito` 自託管於 Git 儲存庫對專案體積毫無負擔，且能 100% 確定移除外部網路建置依賴。
+### 2. 現行建置產物實況
+- 目前 Next.js 透過 `next/font/google` 在建置階段下載了 **221 個 WOFF2 切片**，總體積達 **10,134,980 位元組（約 10.13 MB）**。
+- 瀏覽器造訪時，雖然能透過 HTTP 僅按需下載當前頁面有使用到的數個切片（約數百 KB），但建置階段必須全數下載，造成 CI 與發布環境的穩定性隱憂。
 
 ---
 
 ## 七、方案比較表
 
-| 評估項目 | 方案 1：全自託管完整 CJK 與 Nunito | 方案 2：自託管 Nunito + 原生系統繁中字型堆疊（首選） | 方案 3：全系統字型堆疊（零自託管） | 方案 4：保留 Google Fonts + CI Retry | 方案 5：改為瀏覽器端遠端 `<link>` 載入 | 方案 6：精簡核心字重子集化自託管（備用） |
+| 評估項目 | 方案 1：全自託管完整未切片字型 | 方案 2：自託管 Nunito + 原生系統繁中（候選折衷） | 方案 3：全系統字型堆疊（零自託管） | 方案 4：保留 Google Fonts + CI Retry | 方案 5：改為瀏覽器端遠端 `<link>` 載入 | 方案 6：精簡核心字重子集化自託管（備用候選） |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Build 穩定性** | **極高**（100% 離線） | **極高**（100% 離線） | **極高**（100% 離線） | **差**（仍有外部依賴，假性穩定） | **高**（Build 不下載） | **極高**（100% 離線） |
-| **前台視覺一致性** | 極高 | **高**（西文 Nunito 一致，中文原生高品質渲染） | 中（西文失去 Nunito 圓角特徵） | 極高 | 極高 | **極高**（維持 Noto 原貌） |
-| **首屏使用者下載量** | **極差**（>15~28 MB） | **極佳**（僅 38 KB） | **最優**（0 KB） | 中（動態切片） | 中（動態切片） | 中（約 2~3 MB） |
-| **Repository 增量** | **極差**（增加約 15~28 MB） | **極佳**（僅增約 43 KB） | **0 KB** | 0 KB | 0 KB | 中（增約 2.5~3.5 MB） |
-| **實作與維護複雜度** | 低 | **極低** | 極低 | 低（但遺留技術債） | 低 | 中至高（需維護字型子集工具） |
-| **使用者隱私保護** | 優良（無第三方連線） | **優良**（無第三方連線） | 優良（無連線） | 優良（自託管） | **差**（訪客 IP 洩漏給 Google） | 優良（無第三方連線） |
-| **消除建置外部依賴** | 是 | **是** | 是 | **否（完全未消除）** | 是（但轉嫁風險給訪客） | 是 |
-| **推薦結論** | **不建議**（傳輸過大） | **首選推薦** | 備用退路 | **強烈反對**（違背任務原則） | **強烈反對**（傷害隱私與 FOUT） | **備用推薦** |
+| **Build 穩定性** | 預期可達離線建置 | **預期可達離線建置** | 預期可達離線建置 | **差**（未移除外部連線） | 高（Build 階段不載入） | **預期可達離線建置** |
+| **視覺一致性** | 與現行完全一致 | **有明顯差異**（中英字型與順序改變） | 有明顯差異（英文字型改變） | 與現行完全一致 | 與現行完全一致 | **高**（核心字重一致，罕見字 fallback） |
+| **首屏使用者下載量** | 偏高（>10~28 MB） | **極低**（預估約數十 KB） | **最低**（0 KB） | 中（依頁面切片載入） | 中（依頁面切片載入） | 中（預估約 2~3 MB） |
+| **Repository 增量** | 增加約 15~28 MB | **僅增約數十 KB** | **0 KB** | 0 KB | 0 KB | 增加約 2~3 MB |
+| **外部依賴消除** | 消除 Google Fonts 下載 | **消除 Google Fonts 下載** | 消除 Google Fonts 下載 | **未消除** | 僅自 Build 轉移至瀏覽器 | 消除 Google Fonts 下載 |
+| **隱私與合規** | 自託管無第三方連線 | **自託管無第三方連線** | 無第三方連線 | 自託管無第三方連線 | **存在潛在合規風險** | 自託管無第三方連線 |
+| **綜合評估** | 不建議（體積過大） | **候選折衷方案（需 Preview 比對）** | 備用退路 | **不建議（治標不治本）** | **不建議（轉移風險給訪客）** | **備用候選方案（需評估動態內容）** |
+
+*註：關於瀏覽器連線第三方字型服務（方案 5），瀏覽器直接向第三方請求字型會傳遞訪客 IP 與 User-Agent 等連線資訊，在特定司法管轄區（如歐盟 GDPR 相關判例）可能衍生隱私合規爭議；實際法規遵循狀態須視適用地區、法律基礎與同意機制而定，但就技術架構而言確有增加第三方依賴與資料洩漏面之風險。*
 
 ---
 
-## 八、首選方案規格（方案 2）
+## 八、候選方案 A：自託管輕量拉丁字型＋系統繁中字型堆疊（視覺折衷方案）
 
-### 核心精神
-**「以極輕量的 38 KB 官方 Nunito WOFF2 自託管確保樂團核心西文品牌視覺，繁體中文全面回歸作業系統原生最高品質字型堆疊，徹底達成 100% 離線穩定建置與極速首屏載入。」**
+### 方案本質
+**「以建置穩定性與傳輸量為優先的視覺折衷方案，正式採用前必須建立 Preview，與現行正式站進行桌面版及手機版截圖比較，並由專案負責人確認視覺差異。」**
 
-### 1. 為什麼這是最佳選擇？
-- **繁體中文作業系統原生支援成熟**：
-  - Apple 裝置（macOS / iOS / iPadOS）：內建 `PingFang TC`（蘋方-繁），為公認螢幕閱讀體驗最佳之繁中黑體。
-  - Windows 裝置：內建 `Microsoft JhengHei`（微軟正黑體），具備高度 ClearType 最佳化。
-  - Android / ChromeOS / Linux：系統原生即為 `Noto Sans CJK TC`。
-  - 訪客在任何設備上皆能享受到清晰、銳利且載入速度為 0 毫秒的繁中文字。
-- **樂團品牌視覺完美保留**：
-  - La Cozzi 作為手作溫暖樂團，其最具辨識度的品牌視覺為標題、Logo、英文字母與數字的圓潤線條，這完全來自 **`Nunito`**。
-  - 將自託管的 `Nunito` 置於字型堆疊首位，英文字母與數字全部由 Nunito 渲染，中文字符自動向下 Fallback 至系統高品質黑體。
-- **體積與效能達到顛峰**：
-  - 總下載量從近 10 MB 驟降至 **38 KB**（減少 99.6%），行動裝置使用者首屏秒開，無 FOIT（文字消失閃爍）或 FOUT（字型跳動）。
-  - Git 儲存庫僅增加 1 個 38 KB 檔案與 4 KB 授權文字。
+### 1. 預期技術效益
+- **移除建置外部依賴**：改用 `next/font/local` 載入本機字型檔，預期可消除 Google Fonts 下載逾時引發的建置失敗。
+- **大幅縮減傳輸體積**：中文依賴本機系統字型（0 下載量），僅需傳輸輕量拉丁字型，預期可降低行動裝置首屏頻寬負擔。
+- **儲存庫負擔極低**：僅需納入單一拉丁字型檔（數十 KB）與授權文件。
 
-### 2. 預計調整檔案
-- 新增：`src/app/fonts/Nunito-Variable.woff2`（39,152 bytes）
-- 新增：`src/app/fonts/OFL-Nunito.txt`（4,385 bytes）
-- 修改：`src/app/layout.tsx`（改以 `next/font/local` 載入 Nunito，移除 `next/font/google`）
-- 修改：`src/app/globals.css`（微調字型堆疊優先序，讓 Nunito 優先處理英數字，繁中完美 Fallback）
+### 2. 明確存在的視覺差異與折衷代價
+1. **英數字外觀轉變**：若將 Nunito 調至第一順位，原本由 Noto Sans TC 呈現的英文字母與數字將改為 Nunito 的圓潤筆觸。
+2. **跨平台繁中呈現差異**：
+   - Apple 裝置（macOS / iOS）：回退至 `PingFang TC`（蘋方）。
+   - Windows 裝置：回退至 `Microsoft JhengHei`（微軟正黑體）。
+   - Android / Linux 裝置：依作業系統版本、硬體製造商與發行版設定而異，實際字型可能為思源黑體或廠商客製字型，**無法保證跨平台一致**。
+   - 不同系統字型的字重、字寬與行高差異，可能導致折行位置與按鈕寬度產生微調。
+3. **襯線與強調字型改變**：`font-serif` 與 `font-marker` 若不再載入 Noto Serif TC，將回退至系統襯線字（如宋體、新細明體或 Georgia），視覺風格將有顯著變化。
 
-### 3. CSS 變數相容性保證
-在 `src/app/globals.css` 中：
-```css
-@theme {
-  --font-sans: var(--font-nunito), "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Songti TC", "PMingLiU", "Times New Roman", ui-serif, Georgia, serif;
-  --font-marker: var(--font-nunito), "Songti TC", cursive;
-}
-```
-所有既有 class（`font-sans`, `font-serif`, `font-marker`）完全無縫運作，不需改動任何前台 HTML 或元件。
+### 3. 正式採用前必須進行比對的 12 項清單
+在實作驗證 PR 中，必須建立 Preview 並針對下列項目截圖比對：
+1. **首頁 Hero 標題與報價表單**（中英混排、輸入框文字、按鈕高度）。
+2. **主要導覽列與行動版漢堡選單**（導覽項目寬度與折行）。
+3. **品牌故事頁（Brand）標題與內文排版**。
+4. **影音頁（Videos）標題與標籤**。
+5. **顧客好評頁（Reviews）評論卡片與評分區塊**。
+6. **部落格列表與內文頁**（標題字重、段落行高、中英標點）。
+7. **後台登入頁與後台管理介面**。
+8. **`font-sans`、`font-serif`、`font-marker` 三大字型類別樣式呈現**。
+9. **純中文、純英文、純數字與中英數混排效果**。
+10. **桌面版與手機版螢幕寬度渲染效果**。
+11. **文字折行、按鈕寬度與卡片高度變化**。
+12. **各頁面橫向水平溢位（Horizontal Overflow）檢查**。
 
 ---
 
-## 九、備用方案規格（方案 6）
+## 九、候選方案 B：精簡核心字重子集化自託管（備用候選方案）
 
 ### 適用時機
-若 Codex 或專案負責人經視覺審查後，堅持「Windows 平台上的中文亦必須與 Noto Sans TC / Noto Serif TC 100% 絕對一致，不得使用微軟正黑體」。
+若專案負責人審查候選方案 A 後，認為跨平台中文字體變化過大，堅持全平台中文必須維持 Noto Sans TC / Noto Serif TC 原貌。
 
-### 核心做法：核心字重精簡子集化自託管
-1. **精簡字重**：將原有的 12 個字重精簡為真正核心的字重：
-   - `Noto Sans TC`：Regular (400) 與 Bold (700)
-   - `Noto Serif TC`：Bold (700)
-   - `Nunito`：Variable (300..700)
-2. **字符子集化（Subsetting）**：使用 `pyftsubset` 依據台灣教育部《常用國字標準字體表》（4,808 字）+ 常用英數標點符號進行切片裁剪，轉換為 WOFF2。
-3. **成果**：
-   - Noto Sans TC (400, 700)：約 1.8 MB
-   - Noto Serif TC (700)：約 1.1 MB
-   - Nunito：約 38 KB
-   - 總體積控制在 **約 3 MB**，透過 `next/font/local` 放入專案，達成全平台一致與離線建置。
+### 核心做法與動態內容風險
+1. **字重精簡**：僅保留核心字重（如 Noto Sans TC 400/700, Noto Serif TC 700, Nunito Variable）。
+2. **字元子集化**：依據台灣教育部《常用國字標準字體表》（4,808 字）與常見符號進行切片，將 WOFF2 總體積壓縮至約 2.5 ~ 3.5 MB 放入專案自託管。
+3. **動態內容風險說明**：
+   - 資料庫中的文章內容、顧客評論、合作夥伴名稱與未來新增的公開文字，若包含常用 4,808 字以外的罕見字、特殊符號、日韓文或 Emoji，**該字元將無法由此子集呈現，仍會 Fallback 至各裝置的系統字型**。
+   - 因此，子集化方案亦無法宣稱全站「100% 絕對完全一致」，必須評估動態內容之字元覆蓋風險。
 
 ---
 
-## 十、不採用方案與原因
+## 十、其他評估方案與不建議原因
 
 1. **方案 1（全自託管完整未切片 CJK 字型）**：
-   - 拒絕原因：高達 28.7 MB，嚴重膨脹 Git 儲存庫並嚴重破壞行動裝置使用者效能。
+   - 不建議原因：總檔案高達 28.7 MB，對 Git 儲存庫與訪客載入速度帶來過大負擔。
 2. **方案 4（保留 Google Fonts 並加入 CI Retry）**：
-   - 拒絕原因：治標不治本，未消除外部網路依賴；CI Runner 或 Vercel 遇網路封鎖或限流時重試依然會失敗。
-3. **方案 5（改成瀏覽器執行時 `<link>` 遠端載入）**：
-   - 拒絕原因：洩漏訪客 IP 違反隱私規範；產生文字空白閃爍（FOIT）；將建置風險轉嫁給所有造訪官網的客人。
+   - 不建議原因：Retry 僅能緩解偶發斷線，無法消除外部依賴；若網路環境持續受限，CI 與 Vercel 仍會失敗，屬治標不治本。
+3. **方案 5（改成瀏覽器執行時遠端 `<link>` 載入）**：
+   - 不建議原因：將建置風險轉嫁給所有終端訪客，產生文字空白（FOIT）或跳動（FOUT），並伴隨連線隱私與合規考量。
 
 ---
 
-## 十一、後續實作檔案清單（若採首選方案）
+## 十一、後續實作建議與驗證規劃
 
-若獲核准實作首選方案，後續任務（如 AG-012）之修改範圍如下：
-- **新增**：
-  - `la-cozzi-website/src/app/fonts/Nunito-Variable.woff2`
-  - `la-cozzi-website/src/app/fonts/OFL-Nunito.txt`
-- **修改**：
-  - `la-cozzi-website/src/app/layout.tsx`（將 `next/font/google` 替換為 `next/font/local`）
-  - `la-cozzi-website/src/app/globals.css`（對齊字型堆疊順序）
-- **完全不修改**：
-  - 任何前台頁面結構、元件內容、資料庫、套件相依或 CI 工作流程。
-
----
-
-## 十二、視覺驗證方法
-
-後續實作時，必須依序進行跨平台與跨裝置視覺驗證：
-1. **桌面瀏覽器比對**：
-   - macOS / iOS：驗證英數字由 Nunito 呈現圓潤手作感，中文由 PingFang TC 呈現精緻黑體。
-   - Windows：驗證英數字維持 Nunito，中文由微軟正黑體呈現，字距與行高無溢位。
-2. **關鍵版面檢查**：
-   - 首頁 Hero 區塊、導覽列按鈕、詢價表單輸入框。
-   - 部落格文章列表（`BlogPage.tsx`）與內文標題。
-   - 影音列表（`VideosPage.tsx`）與評論卡片（`ReviewsPage.tsx`）。
-3. **自動化煙霧測試防護**：
-   - 執行 `npm run test:smoke`（Playwright 13 項測試），確保所有文字節點均正常渲染且頁面無水平溢位（Zero horizontal overflow）。
+若專案負責人同意評估候選方案，建議之執行流程如下：
+1. **建立獨立的視覺驗證 PR**：
+   - 不直接併入 `main`。
+   - 納入自託管之字型檔，改寫 `src/app/layout.tsx` 與 `src/app/globals.css`。
+   - 產出代表性頁面（桌面版與手機版）截圖，與現行正式站進行並列對照。
+2. **專案負責人視覺確認**：
+   - 確認中英文字型外觀、折行與按鈕間距是否符合樂團形象預期。
+   - 若視覺差異可接受，始得核准合併。
+   - 若視覺無法接受，則進一步評估候選方案 B（子集化）或更接近 Noto 外觀之開源拉丁字型。
 
 ---
 
-## 十三、離線 Build 驗證方法
+## 十二、離線 Build 驗收條件
 
-證明建置不再依賴 Google Fonts 的具體驗收步驟：
-1. **斷網建置測試**：
-   - 在本機斷開 Wi-Fi / 乙太網路，或透過代理伺服器封鎖 `fonts.googleapis.com` 與 `fonts.gstatic.com`。
-   - 執行 `npm run build`。
-   - **驗收標準**：即使在完全無網路環境下，Turbopack 仍能在 10 秒內成功完成 Production Build，不再產生任何網路超時或模組遺失錯誤。
-2. **建置產物檢查**：
-   - 檢查 `.next/static/media`：原本產生的 222 個零散 Google 切片全部消失，僅有專案自託管之單一 Nunito 字型。
-
----
-
-## 十四、回復方案
-
-若實作後發現任何非預期字型渲染異常，可透過標準 Git 流程快速回復：
-1. 透過 Git Revert 撤銷該次 PR 之 Commit。
-2. 或於 `src/app/layout.tsx` 暫時切換回系統安全字型堆疊（方案 3），不需依賴外部網路即可維持 100% 正常運作。
+後續實作任務若宣稱達成消除外部依賴，必須符合以下客觀驗收條件：
+1. **受限網路驗證**：
+   - 在阻擋 `fonts.googleapis.com` 與 `fonts.gstatic.com` 網域的受控環境中（例如透過本機 hosts 轉向至 127.0.0.1 或代理伺服器攔截，不中斷整台電腦網路）。
+   - 清除本機快取目錄（`rm -rf .next`）後執行 `npm run build`。
+2. **驗收標準**：
+   - `npm run build` 必須成功（Exit code 0）。
+   - 建置日誌中 **完全不得出現** Google Fonts 下載、逾時或連線警告。
+   - 搜尋正式程式碼目錄（`src/**`）中不得再存在 `next/font/google` 匯入。
+   - 檢查產物目錄（`.next/static/media`），不得再產生由 Google Fonts 動態生成的 221 個舊切片檔案。
+   - 建置耗時僅作前後對比紀錄，不設固定秒數門檻。
 
 ---
 
-## 十五、尚待 Codex 或專案負責人決定的事項
+## 十三、回復方案
 
-1. **方案核准**：請專案負責人確認是否同意採用「**方案 2（自託管 Nunito + 原生繁中系統字型堆疊）**」作為正式修正方向。
-2. **字重精簡原則**：若專案負責人偏好保留 Noto 字型外觀（方案 6），是否同意將字重精簡為 Regular (400) 與 Bold (700) 以控制檔案大小在 3 MB 以內。
-3. **任務派發**：本任務（AG-011）僅負責調查與規格制定，正式實作將交由後續專屬任務（如 AG-012）獨立執行與驗收。
+若後續實作在 Preview 或上線後發現非預期問題：
+1. 可透過 Git Revert 撤銷實作 Commit。
+2. 或於 `src/app/layout.tsx` 暫時切換為純系統安全字型堆疊（方案 3），無需外部網路即可維持正常運作。
+
+---
+
+## 十四、尚待 Codex 或專案負責人決定的事項
+
+1. **候選方案方向**：是否同意建立獨立 PR，以「方案 2（自託管 Nunito + 原生繁中系統字型）」進行桌面與手機版截圖比較。
+2. **視覺驗收標準**：專案負責人是否接受英數字外觀轉為 Nunito 圓潤特徵，以及不同作業系統（Apple / Windows / Android）中文字型之細微差異。
+3. **任務派發**：本任務（AG-011）僅負責完成客觀技術調查與規格制定，正式實作將待審查核准後另行派發獨立任務執行。

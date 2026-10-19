@@ -20,7 +20,7 @@
 | P1 | 沒有 Prisma migration 歷史 | Schema 變更不可追蹤或難以回復 | 建立 migration 基準與向下相容規範 | 先備份並核對正式 schema |
 | P1 | 公開評論 API 缺少防濫用措施 | 垃圾資料、資源消耗 | 加入 rate limit、驗證與監控 | 不阻擋正常使用者 |
 | P1 | 上傳驗證主要依賴 MIME type | 惡意或不預期檔案 | 驗證檔案內容並限制 SVG／格式策略 | 測試既有圖片流程 |
-| P1 | Build 依賴建置時下載 Google Fonts | 受限網路下無法建置（CI Run 39113850612 曾失敗） | 已完成技術調查與首選方案規劃（AG-011，詳見 `docs/FONT_BUILD_RELIABILITY.md`）；正式自託管修正待實作 | 比對字型與版面呈現並驗證離線建置 |
+| P1 | Build 依賴建置時下載 Google Fonts | 受限網路下無法建置（CI Run 39113850612 曾失敗） | 已完成技術調查與候選方案規劃（AG-011，詳見 `docs/FONT_BUILD_RELIABILITY.md`）；正式自託管修正待實作 | 比對字型與版面呈現並驗證離線建置 |
 | P2 | ESLint 基準問題 | 品質門檻無法啟用 | 分批修正，不一次混入功能改動 | 已完成清理至 0 錯誤、0 警告（AG-001 結案） |
 | P2 | 多重 lockfile 造成 root 判斷警告 | Build 行為可能不一致 | 明確設定 root 或整理上層 lockfile | 已於 next.config.ts 固定 turbopack.root 為專案目錄，風險已解除（AG-005 結案） |
 | P2 | Notion 舊程式仍存在 | 架構與資料來源不明確 | 確認依賴後保留、封存或移除 | 必須證明正式功能不再依賴 |
