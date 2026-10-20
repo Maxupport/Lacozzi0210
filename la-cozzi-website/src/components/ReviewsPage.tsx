@@ -16,6 +16,7 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
   const [stars, setStars] = useState(5);
   const [comment, setComment] = useState('');
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -40,6 +41,7 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
           stars,
           comment: comment.trim(),
           email: email.trim() || undefined,
+          website,
         }),
       });
 
@@ -230,6 +232,18 @@ export default function ReviewsPage({ initialReviews }: { initialReviews: Public
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="hidden" aria-hidden="true">
+                    <label htmlFor="review-website">網站</label>
+                    <input
+                      id="review-website"
+                      type="text"
+                      name="website"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
                   {/* 您的稱呼 */}
                   <div>
                     <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1">
