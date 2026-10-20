@@ -1,26 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { MAX_REVIEW_BODY_BYTES, validateReviewSubmission } from '@/lib/review-submission';
+
+const DUPLICATE_WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const name = String(body.name || '').trim();
-    const comment = String(body.comment || '').trim();
-    const tag = String(body.tag || '婚禮晚宴').trim();
-    const stars = Math.min(5, Math.max(1, Number(body.stars) || 5));
-    const email = body.email ? String(body.email).trim() : null;
+    if (!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+      return NextResponse.json({ ok: false, error: '請使用正確的送出格式' }, { status: 415 });
+    }
 
-    if (!name) {
-      return NextResponse.json({ ok: false, error: '請填寫您的稱呼' }, { status: 400 });
+    const declaredLength = Number(req.headers.get('content-length') || 0);
+    if (declaredLength > MAX_REVIEW_BODY_BYTES) {
+      return NextResponse.json({ ok: false, error: '送出內容超出限制' }, { status: 413 });
     }
-    if (!comment) {
-      return NextResponse.json({ ok: false, error: '請填寫您的回饋心得' }, { status: 400 });
+
+    const rawBody = await req.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > MAX_REVIEW_BODY_BYTES) {
+      return NextResponse.json({ ok: false, error: '送出內容超出限制' }, { status: 413 });
     }
-    if (name.length > 50) {
-      return NextResponse.json({ ok: false, error: '稱呼長度過長' }, { status: 400 });
+
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ ok: false, error: '送出內容格式不正確' }, { status: 400 });
     }
-    if (comment.length > 2000) {
-      return NextResponse.json({ ok: false, error: '評論長度超出限制' }, { status: 400 });
+
+    const validation = validateReviewSubmission(body);
+    if (!validation.ok) {
+      return NextResponse.json({ ok: false, error: validation.error }, { status: 400 });
+    }
+
+    const { name, comment, tag, stars, email, website } = validation.value;
+
+    // 蜜罐欄位：自動化機器人通常會填入，對外仍回傳成功以避免洩漏規則。
+    if (website) {
+      return NextResponse.json({
+        ok: true,
+        message: '感謝您的溫暖回饋！我們在確認後會將您的評價刊登在官網上。',
+      });
+    }
+
+    const duplicate = await prisma.review.findFirst({
+      where: {
+        name,
+        comment,
+        source: 'WEBSITE',
+        createdAt: { gte: new Date(Date.now() - DUPLICATE_WINDOW_MS) },
+      },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      return NextResponse.json({
+        ok: true,
+        message: '感謝您的溫暖回饋！我們已收到這則評價。',
+        id: duplicate.id,
+      });
     }
 
     const review = await prisma.review.create({

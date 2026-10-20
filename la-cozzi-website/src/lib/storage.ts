@@ -36,7 +36,6 @@ const EXT_BY_TYPE: Record<string, string> = {
   'image/webp': 'webp',
   'image/gif': 'gif',
   'image/avif': 'avif',
-  'image/svg+xml': 'svg',
 };
 
 export function extensionFor(contentType: string, fallbackName?: string) {
