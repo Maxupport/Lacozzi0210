@@ -26,6 +26,7 @@
 - [AG 任務文件索引](./tasks/README.md)
 - [通用 AG 任務範本](./tasks/AG-TASK-TEMPLATE.md)
 - [AG-001：清理 ESLint 基準並建立 CI](./tasks/AG-001-ESLINT-CI.md)
+- [AG-002：核心唯讀 Smoke Tests 與 CI Actions 更新](./tasks/AG-002-SMOKE-TESTS.md)
 - [正式上線檢查表](./RELEASE_CHECKLIST.md)
 
 ## 文件效力
